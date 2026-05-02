@@ -69,4 +69,8 @@ object DatabaseModule {
     @Singleton
     fun provideMpesaRepository(dao: PaymentDao): MpesaRepository =
         MpesaRepository()
+
+    @Provides
+    @Singleton
+    fun provideElectronicsDao(db: LendLoopDatabase): ElectronicsDao = db.electronicsDao()
 }

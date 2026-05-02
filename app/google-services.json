@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1073124444594",
+    "project_id": "lendloop-9098d",
+    "storage_bucket": "lendloop-9098d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1073124444594:android:558783406264cb98ddfcab",
+        "android_client_info": {
+          "package_name": "com.example.lendloop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6D6EayEW7642JjM-1dbkrwylZ8KxOpnM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

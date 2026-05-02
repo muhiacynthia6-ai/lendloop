@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.lendloop.data.db.Review
 import com.example.lendloop.data.db.TrustScore
 import com.example.lendloop.models.ProfileViewModel
@@ -28,6 +29,7 @@ import com.example.lendloop.util.toFormattedDate
 @Composable
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
+    navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()

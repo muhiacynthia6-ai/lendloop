@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.lendloop.models.HomeViewModel
 import com.example.lendloop.ui.components.BorrowCard
 import com.example.lendloop.ui.components.EmptyState
@@ -31,6 +32,7 @@ fun HomeScreen(
     onProfile: () -> Unit,
     onReviewRecord: (recordId: Int, revieweeId: Int) -> Unit,
     onPayRecord: (recordId: Int, amount: Float, personName: String) -> Unit,
+    navController: NavHostController,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()

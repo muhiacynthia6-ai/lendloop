@@ -11,9 +11,10 @@ import androidx.room.RoomDatabase
         User::class,
         Review::class,
         TrustScore::class,
-        Payment::class
+        Payment::class,
+        ElectronicsDetail::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class LendLoopDatabase : RoomDatabase() {
@@ -22,4 +23,5 @@ abstract class LendLoopDatabase : RoomDatabase() {
     abstract fun reviewDao(): ReviewDao
     abstract fun trustScoreDao(): TrustScoreDao
     abstract fun paymentDao(): PaymentDao
+    abstract fun electronicsDao(): ElectronicsDao
 }

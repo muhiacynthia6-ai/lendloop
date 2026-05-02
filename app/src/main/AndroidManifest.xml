@@ -1,10 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ── Permissions ─────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Gallery: Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Gallery: Android 9 and below -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Camera photo saving: Android 9 and below -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!-- Camera is optional — app works without it -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- ── Google Sign-In: allows credential picker to resolve ─────── -->
+    <queries>
+        <package android:name="com.google.android.gms" />
+    </queries>
+
+    <!-- ── Application ────────────────────────────────────────────── -->
     <application
         android:name=".LendLoopApp"
         android:allowBackup="true"
@@ -15,6 +41,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LendLoop">
+
+        <!-- ── Main Activity ──────────────────────────────────────── -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -22,10 +50,11 @@
             android:theme="@style/Theme.LendLoop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- ── WorkManager: custom init (prevents double-init) ────── -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -36,6 +65,11 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+
+        <!-- ✅ FileProvider removed — using MediaStore instead      -->
+        <!-- If you still need FileProvider for sharing files        -->
+        <!-- outside the app, add it back with a file_paths.xml      -->
+
     </application>
 
 </manifest>

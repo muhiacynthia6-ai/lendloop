@@ -1,22 +1,10 @@
 package com.example.lendloop.navigation
 
-import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.example.lendloop.Screens.AddRecordScreen
-import com.example.lendloop.Screens.HistoryScreen
-import com.example.lendloop.Screens.HomeScreen
-import com.example.lendloop.Screens.LoginScreen
-import com.example.lendloop.Screens.PaymentScreen
-import com.example.lendloop.Screens.PersonScreen
-import com.example.lendloop.Screens.ProfileScreen
-import com.example.lendloop.Screens.RegisterScreen
-import com.example.lendloop.Screens.WelcomeScreen
+import androidx.navigation.*
+import androidx.navigation.compose.*
+import com.example.lendloop.Screens.*
+import com.example.lendloop.screens.AddRecordScreen
 import com.example.lendloop.screens.ReviewScreen
 import com.example.lendloop.util.SessionManager
 
@@ -25,22 +13,21 @@ fun LendLoopNavGraph(
     sessionManager: SessionManager,
     navController: NavHostController = rememberNavController()
 ) {
-    val startDestination = if (sessionManager.isLoggedIn()) Routes.HOME else Routes.WELCOME
+    val startDestination =
+        if (sessionManager.isLoggedIn()) Routes.HOME else Routes.WELCOME
 
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
-    ) {
+    NavHost(navController = navController, startDestination = startDestination) {
 
-        // ── Welcome ───────────────────────────────────────────────────────
+        /* ---------------- AUTH ---------------- */
+
         composable(Routes.WELCOME) {
             WelcomeScreen(
                 onRegister = { navController.navigate(Routes.REGISTER) },
-                onLogin    = { navController.navigate(Routes.LOGIN) }
+                onLogin = { navController.navigate(Routes.LOGIN) },
+                navController = navController
             )
         }
 
-        // ── Register ──────────────────────────────────────────────────────
         composable(Routes.REGISTER) {
             RegisterScreen(
                 onNavigateToLogin = {
@@ -52,11 +39,11 @@ fun LendLoopNavGraph(
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
                     }
-                }
+                },
+                navController = navController
             )
         }
 
-        // ── Login ─────────────────────────────────────────────────────────
         composable(Routes.LOGIN) {
             LoginScreen(
                 onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
@@ -64,100 +51,117 @@ fun LendLoopNavGraph(
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
                     }
-                }
+                },
+                navController = navController
             )
         }
 
-        // ── Home ──────────────────────────────────────────────────────────
+        /* ---------------- MAIN ---------------- */
+
         composable(Routes.HOME) {
             HomeScreen(
-                onAddRecord    = { navController.navigate(Routes.ADD_RECORD) },
-                onHistory      = { navController.navigate(Routes.HISTORY) },
-                onProfile      = { navController.navigate(Routes.PROFILE) },
-                onRecordClick  = { recordId ->
-                    navController.navigate(Routes.personRoute(recordId))
+                onAddRecord = { navController.navigate(Routes.ADD_RECORD) },
+                onHistory = { navController.navigate(Routes.HISTORY) },
+                onProfile = { navController.navigate(Routes.PROFILE) },
+                onRecordClick = { id ->
+                    navController.navigate(Routes.personRoute(id))
                 },
                 onReviewRecord = { recordId, revieweeId ->
                     navController.navigate(Routes.reviewRoute(recordId, revieweeId))
                 },
-                onPayRecord    = { recordId, amount, personName ->
-                    navController.navigate(Routes.paymentRoute(recordId, amount, personName))
+                onPayRecord = { recordId, amount, personName ->
+                    navController.navigate(
+                        Routes.paymentRoute(recordId, amount, personName)
+                    )
                 },
-                onLogout       = {
+                onLogout = {
                     navController.navigate(Routes.WELCOME) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
-                }
+                },
+                navController = navController
             )
         }
 
-        // ── Add Record ────────────────────────────────────────────────────
         composable(Routes.ADD_RECORD) {
             AddRecordScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                navController = navController
             )
         }
 
-        // ── History ───────────────────────────────────────────────────────
         composable(Routes.HISTORY) {
             HistoryScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                navController = navController
             )
         }
 
-        // ── Profile ───────────────────────────────────────────────────────
         composable(Routes.PROFILE) {
             ProfileScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                navController = navController
             )
         }
 
-        // ── Person Detail ─────────────────────────────────────────────────
+        /* ---------------- DETAILS ---------------- */
+
         composable(
-            route     = Routes.PERSON,
-            arguments = listOf(
-                navArgument("personId") { type = NavType.IntType }
-            )
+            route = Routes.PERSON,
+            arguments = listOf(navArgument("personId") { type = NavType.IntType })
         ) {
             PersonScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                navController = navController
             )
         }
 
-        // ── Review ────────────────────────────────────────────────────────
         composable(
-            route     = Routes.REVIEW,
+            route = Routes.EDIT_RECORD,
+            arguments = listOf(navArgument("recordId") { type = NavType.IntType })
+        ) {
+            EditRecordScreen(
+                onNavigateBack = { navController.popBackStack() },
+                navController = navController
+            )
+        }
+
+        composable(
+            route = Routes.REVIEW,
             arguments = listOf(
-                navArgument("recordId")   { type = NavType.IntType },
+                navArgument("recordId") { type = NavType.IntType },
                 navArgument("revieweeId") { type = NavType.IntType }
             )
         ) {
             ReviewScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onDone         = {
+                onDone = {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
-                }
+                },
+                navController = navController
             )
         }
 
-        // ── Payment ───────────────────────────────────────────────────────
+        /* ---------------- PAYMENT ---------------- */
+
         composable(
-            route     = Routes.PAYMENT,
+            route = Routes.PAYMENT,
             arguments = listOf(
-                navArgument("recordId")   { type = NavType.IntType },
-                navArgument("amount")     { type = NavType.FloatType },
+                navArgument("recordId") { type = NavType.IntType },
+                navArgument("amount") { type = NavType.StringType },
                 navArgument("personName") { type = NavType.StringType }
             )
         ) {
             PaymentScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onPaymentDone  = {
+                onPaymentDone = {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
-                }
+                },
+                navController = navController
             )
         }
     }

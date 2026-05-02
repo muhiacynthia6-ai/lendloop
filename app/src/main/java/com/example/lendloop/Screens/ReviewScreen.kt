@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.lendloop.ui.review.ReviewViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +27,7 @@ import com.example.lendloop.ui.review.ReviewViewModel
 fun ReviewScreen(
     onNavigateBack: () -> Unit,
     onDone: () -> Unit,
+    navController: NavController,
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -57,7 +59,6 @@ fun ReviewScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (uiState.alreadyReviewed) {
-                // Already reviewed state
                 Text(text = "✅", fontSize = 56.sp)
                 Text(
                     text = "Already Reviewed",
@@ -77,7 +78,6 @@ fun ReviewScreen(
                     Text("Go back")
                 }
             } else {
-                // Review form
                 Text(text = "⭐", fontSize = 56.sp)
                 Text(
                     text = "How did it go?",
@@ -91,7 +91,6 @@ fun ReviewScreen(
                     textAlign = TextAlign.Center
                 )
 
-                // Star rating
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -138,7 +137,6 @@ fun ReviewScreen(
                     }
                 }
 
-                // Comment
                 OutlinedTextField(
                     value = uiState.comment,
                     onValueChange = viewModel::onCommentChange,
@@ -149,7 +147,6 @@ fun ReviewScreen(
                     maxLines = 5
                 )
 
-                // Error
                 if (uiState.error != null) {
                     Text(
                         text = uiState.error!!,
@@ -158,7 +155,6 @@ fun ReviewScreen(
                     )
                 }
 
-                // Submit button
                 Button(
                     onClick = viewModel::submitReview,
                     modifier = Modifier
@@ -179,7 +175,6 @@ fun ReviewScreen(
                     }
                 }
 
-                // Skip button
                 TextButton(
                     onClick = viewModel::skipReview,
                     modifier = Modifier.fillMaxWidth()

@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.lendloop.data.db.BorrowRecord
 import com.example.lendloop.data.db.Direction
 import com.example.lendloop.data.db.Status
@@ -28,6 +29,7 @@ import com.example.lendloop.util.toFormattedDate
 @Composable
 fun PersonScreen(
     onNavigateBack: () -> Unit,
+    navController: NavController,
     viewModel: PersonViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()

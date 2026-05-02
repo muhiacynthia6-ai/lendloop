@@ -4,41 +4,33 @@ import android.net.Uri
 
 object Routes {
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Auth routes
-    // ─────────────────────────────────────────────────────────────────────────
-
+    // Auth
     const val WELCOME  = "welcome"
     const val LOGIN    = "login"
     const val REGISTER = "register"
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Main routes
-    // ─────────────────────────────────────────────────────────────────────────
-
+    // Main
     const val HOME       = "home"
     const val ADD_RECORD = "add_record"
     const val HISTORY    = "history"
     const val PROFILE    = "profile"
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Detail routes (with arguments)
-    // ─────────────────────────────────────────────────────────────────────────
+    // Detail
+    const val PERSON      = "person/{personId}"
+    const val EDIT_RECORD = "edit_record/{recordId}"
+    const val REVIEW      = "review/{recordId}/{revieweeId}"
+    const val PAYMENT     = "payment/{recordId}/{amount}/{personName}"
 
-    const val PERSON  = "person/{personId}"
-    const val REVIEW  = "review/{recordId}/{revieweeId}"
-    const val PAYMENT = "payment/{recordId}/{amount}/{personName}"
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Route builder functions
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun personRoute(personId: Int): String =
+    // Builders
+    fun personRoute(personId: Int) =
         "person/$personId"
 
-    fun reviewRoute(recordId: Int, revieweeId: Int): String =
+    fun editRecordRoute(recordId: Int) =
+        "edit_record/$recordId"
+
+    fun reviewRoute(recordId: Int, revieweeId: Int) =
         "review/$recordId/$revieweeId"
 
-    fun paymentRoute(recordId: Int, amount: Float, personName: String): String =
+    fun paymentRoute(recordId: Int, amount: Float, personName: String) =
         "payment/$recordId/$amount/${Uri.encode(personName)}"
 }

@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for Authentication (Login and Registration)
+ */
 data class AuthUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,

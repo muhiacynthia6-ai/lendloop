@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.lendloop.data.db.BorrowRecord
 import com.example.lendloop.data.db.Direction
 import com.example.lendloop.models.HistoryFilter
@@ -23,6 +24,7 @@ import com.example.lendloop.util.toFormattedDate
 @Composable
 fun HistoryScreen(
     onNavigateBack: () -> Unit,
+    navController: NavController,
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
