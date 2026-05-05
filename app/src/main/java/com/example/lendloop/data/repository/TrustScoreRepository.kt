@@ -37,7 +37,6 @@ class TrustScoreRepository @Inject constructor(
 
     suspend fun isRestricted(userId: Int): Boolean {
         val score = dao.getTrustScore(userId) ?: return false
-        // Auto-lift if restriction has expired
         if (score.isRestricted && score.restrictedUntil != null) {
             if (score.restrictedUntil < System.currentTimeMillis()) {
                 dao.liftExpiredRestrictions(userId)

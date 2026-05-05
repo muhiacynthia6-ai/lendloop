@@ -16,26 +16,20 @@ class BorrowRepository @Inject constructor(
     private val trustScoreRepository: TrustScoreRepository,
     private val sessionManager: SessionManager
 ) {
-    // --- Person ---
     suspend fun insertPerson(person: Person): Long = dao.insertPerson(person)
     fun getAllPersons(): Flow<List<Person>> = dao.getAllPersons()
     suspend fun getPersonById(id: Int): Person? = dao.getPersonById(id)
-
-    // --- Category ---
     suspend fun insertCategory(category: Category) = dao.insertCategory(category)
     fun getAllCategories(): Flow<List<Category>> = dao.getAllCategories()
 
-    // --- BorrowRecord ---
     suspend fun insertRecord(record: BorrowRecord): Long {
         val id = dao.insertRecord(record)
-        // If user is borrowing something, update their trust score
         if (record.direction == Direction.BORROWED) {
             val userId = sessionManager.getUserId()
             if (userId != -1) trustScoreRepository.onItemBorrowed(userId)
         }
         return id
     }
-
     suspend fun updateRecord(record: BorrowRecord) = dao.updateRecord(record)
     suspend fun deleteRecord(record: BorrowRecord) = dao.deleteRecord(record)
     fun getActiveRecords(): Flow<List<BorrowRecord>> = dao.getActiveRecords()
@@ -46,7 +40,6 @@ class BorrowRepository @Inject constructor(
 
     suspend fun markReturned(id: Int) {
         dao.markReturned(id)
-        // Update trust score for the borrower
         val record = dao.getRecordById(id)
         if (record?.direction == Direction.BORROWED) {
             val userId = sessionManager.getUserId()
@@ -56,8 +49,6 @@ class BorrowRepository @Inject constructor(
 
     suspend fun updateLastReminded(id: Int) = dao.updateLastReminded(id)
     suspend fun getOverdueRecords(): List<BorrowRecord> = dao.getOverdueRecords()
-
-    // Trust score check before borrowing
     suspend fun canUserBorrow(): Boolean {
         val userId = sessionManager.getUserId()
         if (userId == -1) return false

@@ -9,16 +9,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import com.example.lendloop.ui.review.ReviewViewModel
 
 @Composable
 fun WelcomeScreen(
     onRegister: () -> Unit,
-    onLogin: () -> Unit,
-    navController: NavHostController,
-    viewModel: ReviewViewModel = hiltViewModel()
+    onLogin: () -> Unit
 ) {
     Column(
         modifier = Modifier

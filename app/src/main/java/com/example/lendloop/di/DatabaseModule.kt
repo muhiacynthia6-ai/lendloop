@@ -3,6 +3,8 @@ package com.example.lendloop.di
 import android.content.Context
 import androidx.room.Room
 import com.example.lendloop.data.db.*
+import com.example.lendloop.data.repository.AuthRepository
+import com.example.lendloop.data.repository.ElectronicsRepository
 import com.example.lendloop.data.repository.MpesaRepository
 import com.example.lendloop.data.repository.PaymentRepository
 import com.example.lendloop.data.repository.ReviewRepository
@@ -30,47 +32,49 @@ object DatabaseModule {
             .build()
     }
 
-    @Provides
-    @Singleton
+    // ── DAOs ──────────────────────────────────────────────────────────────
+
+    @Provides @Singleton
     fun provideBorrowDao(db: LendLoopDatabase): BorrowDao = db.borrowDao()
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
     fun provideUserDao(db: LendLoopDatabase): UserDao = db.userDao()
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
     fun provideReviewDao(db: LendLoopDatabase): ReviewDao = db.reviewDao()
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
     fun provideTrustScoreDao(db: LendLoopDatabase): TrustScoreDao = db.trustScoreDao()
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
     fun providePaymentDao(db: LendLoopDatabase): PaymentDao = db.paymentDao()
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
+    fun provideElectronicsDao(db: LendLoopDatabase): ElectronicsDao = db.electronicsDao()
+
+    // ── Repositories ──────────────────────────────────────────────────────
+
+    @Provides @Singleton
+    fun provideAuthRepository(userDao: UserDao): AuthRepository =
+        AuthRepository(userDao)
+
+    @Provides @Singleton
     fun provideTrustScoreRepository(dao: TrustScoreDao): TrustScoreRepository =
         TrustScoreRepository(dao)
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
     fun provideReviewRepository(dao: ReviewDao): ReviewRepository =
         ReviewRepository(dao)
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
     fun providePaymentRepository(dao: PaymentDao): PaymentRepository =
         PaymentRepository(dao)
 
-    @Provides
-    @Singleton
-    fun provideMpesaRepository(dao: PaymentDao): MpesaRepository =
+    @Provides @Singleton
+    fun provideMpesaRepository(): MpesaRepository =
         MpesaRepository()
 
-    @Provides
-    @Singleton
-    fun provideElectronicsDao(db: LendLoopDatabase): ElectronicsDao = db.electronicsDao()
+    @Provides @Singleton
+    fun provideElectronicsRepository(dao: ElectronicsDao): ElectronicsRepository =
+        ElectronicsRepository(dao)
 }

@@ -3,25 +3,17 @@ package com.example.lendloop.navigation
 import android.net.Uri
 
 object Routes {
-
-    // Auth
     const val WELCOME  = "welcome"
     const val LOGIN    = "login"
     const val REGISTER = "register"
-
-    // Main
     const val HOME       = "home"
     const val ADD_RECORD = "add_record"
     const val HISTORY    = "history"
     const val PROFILE    = "profile"
-
-    // Detail
     const val PERSON      = "person/{personId}"
     const val EDIT_RECORD = "edit_record/{recordId}"
     const val REVIEW      = "review/{recordId}/{revieweeId}"
     const val PAYMENT     = "payment/{recordId}/{amount}/{personName}"
-
-    // Builders
     fun personRoute(personId: Int) =
         "person/$personId"
 
@@ -31,6 +23,6 @@ object Routes {
     fun reviewRoute(recordId: Int, revieweeId: Int) =
         "review/$recordId/$revieweeId"
 
-    fun paymentRoute(recordId: Int, amount: Float, personName: String) =
+    fun paymentRoute(recordId: Int, amount: Double, personName: String) =
         "payment/$recordId/$amount/${Uri.encode(personName)}"
 }

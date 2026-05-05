@@ -1,4 +1,4 @@
-package com.example.lendloop.screens
+package com.example.lendloop.Screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.lendloop.ui.review.ReviewViewModel
+import com.example.lendloop.models.ReviewViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +42,10 @@ fun ReviewScreen(
                 title = { Text("Leave a Review", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -61,47 +64,47 @@ fun ReviewScreen(
             if (uiState.alreadyReviewed) {
                 Text(text = "✅", fontSize = 56.sp)
                 Text(
-                    text = "Already Reviewed",
-                    style = MaterialTheme.typography.headlineSmall,
+                    text       = "Already Reviewed",
+                    style      = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "You've already left a review for this transaction.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text      = "You've already left a review for this transaction.",
+                    style     = MaterialTheme.typography.bodyMedium,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
                 Button(
-                    onClick = onDone,
+                    onClick  = onDone,
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Text("Go back")
                 }
+
             } else {
                 Text(text = "⭐", fontSize = 56.sp)
                 Text(
-                    text = "How did it go?",
-                    style = MaterialTheme.typography.headlineSmall,
+                    text       = "How did it go?",
+                    style      = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Rate this transaction to help build trust in the community.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text      = "Rate this transaction to help build trust in the community.",
+                    style     = MaterialTheme.typography.bodyMedium,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = when (uiState.rating) {
-                            1 -> "😞 Poor"
-                            2 -> "😐 Fair"
-                            3 -> "🙂 Good"
-                            4 -> "😊 Great"
-                            5 -> "🤩 Excellent!"
+                            1    -> "😞 Poor"
+                            2    -> "😐 Fair"
+                            3    -> "🙂 Good"
+                            4    -> "😊 Great"
+                            5    -> "🤩 Excellent!"
                             else -> "Tap to rate"
                         },
                         style = MaterialTheme.typography.titleMedium,
@@ -111,24 +114,21 @@ fun ReviewScreen(
                             MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         (1..5).forEach { star ->
                             val isSelected = star <= uiState.rating
                             val scale by animateFloatAsState(
-                                targetValue = if (isSelected) 1.2f else 1f,
+                                targetValue   = if (isSelected) 1.2f else 1f,
                                 animationSpec = tween(150),
-                                label = "star_scale_$star"
+                                label         = "star_scale_$star"
                             )
                             Icon(
-                                imageVector = if (isSelected)
-                                    Icons.Filled.Star
-                                else
-                                    Icons.Outlined.StarOutline,
+                                imageVector        = if (isSelected) Icons.Filled.Star
+                                else Icons.Outlined.StarOutline,
                                 contentDescription = "$star stars",
-                                tint = if (isSelected) Color(0xFFFFC107) else Color.Gray,
-                                modifier = Modifier
+                                tint               = if (isSelected) Color(0xFFFFC107)
+                                else Color.Gray,
+                                modifier           = Modifier
                                     .size(48.dp)
                                     .scale(scale)
                                     .clickable { viewModel.onRatingChange(star) }
@@ -136,51 +136,45 @@ fun ReviewScreen(
                         }
                     }
                 }
-
                 OutlinedTextField(
-                    value = uiState.comment,
+                    value         = uiState.comment,
                     onValueChange = viewModel::onCommentChange,
-                    label = { Text("Comment (optional)") },
-                    placeholder = { Text("e.g. Returned on time, great person to lend to!") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 5
+                    label         = { Text("Comment (optional)") },
+                    placeholder   = { Text("e.g. Returned on time, great person to lend to!") },
+                    modifier      = Modifier.fillMaxWidth(),
+                    minLines      = 3,
+                    maxLines      = 5
                 )
-
                 if (uiState.error != null) {
                     Text(
-                        text = uiState.error!!,
+                        text  = uiState.error!!,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-
                 Button(
-                    onClick = viewModel::submitReview,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    enabled = !uiState.isLoading
+                    onClick  = viewModel::submitReview,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    enabled  = !uiState.isLoading
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color    = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
                         Text(
-                            text = "Submit Review",
+                            text  = "Submit Review",
                             style = MaterialTheme.typography.titleSmall
                         )
                     }
                 }
-
                 TextButton(
-                    onClick = viewModel::skipReview,
+                    onClick  = viewModel::skipReview,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Skip for now",
+                        text  = "Skip for now",
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

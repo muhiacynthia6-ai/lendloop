@@ -74,7 +74,6 @@ fun HistoryScreen(
             if (uiState.records.isEmpty()) {
                 EmptyState(message = "No returned items yet.\nMark a record as returned to see it here.")
             } else {
-                // Group records by month
                 val grouped = uiState.records.groupBy { record ->
                     record.returnedAt?.toFormattedDate()?.takeLast(8) ?: "Unknown"
                 }

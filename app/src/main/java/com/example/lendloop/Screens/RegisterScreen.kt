@@ -5,7 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -24,7 +24,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.lendloop.models.AuthViewModel
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -33,15 +32,20 @@ fun RegisterScreen(
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var pin by remember { mutableStateOf("") }
+    val uiState    by viewModel.uiState.collectAsState()
+    var name       by remember { mutableStateOf("") }
+    var phone      by remember { mutableStateOf("") }
+    var pin        by remember { mutableStateOf("") }
     var confirmPin by remember { mutableStateOf("") }
     var pinVisible by remember { mutableStateOf(false) }
-
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
+    }
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) onRegisterSuccess()
+        if (uiState.isSuccess) {
+            viewModel.resetState()
+            onRegisterSuccess()
+        }
     }
 
     Scaffold(
@@ -50,7 +54,10 @@ fun RegisterScreen(
                 title = { Text("Create Account", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToLogin) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -67,114 +74,86 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Join LendLoop",
-                style = MaterialTheme.typography.titleLarge,
+                text       = "Join LendLoop",
+                style      = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Create an account to start tracking your lends and borrows.",
+                text  = "Create an account to start tracking your lends and borrows.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-
             OutlinedTextField(
-                value = name,
-                onValueChange = {
-                    name = it
-                    viewModel.clearError()
-                },
-                label = { Text("Full name") },
-                leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = null)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                value         = name,
+                onValueChange = { name = it; viewModel.clearError() },
+                label         = { Text("Full name") },
+                leadingIcon   = { Icon(Icons.Default.Person, null) },
+                modifier      = Modifier.fillMaxWidth(),
+                singleLine    = true
             )
-
             OutlinedTextField(
-                value = phone,
-                onValueChange = {
-                    phone = it
-                    viewModel.clearError()
-                },
-                label = { Text("Phone number") },
-                leadingIcon = {
-                    Icon(Icons.Default.Phone, contentDescription = null)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                value           = phone,
+                onValueChange   = { phone = it; viewModel.clearError() },
+                label           = { Text("Phone number") },
+                leadingIcon     = { Icon(Icons.Default.Phone, null) },
+                modifier        = Modifier.fillMaxWidth(),
+                singleLine      = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
-
             OutlinedTextField(
-                value = pin,
+                value         = pin,
                 onValueChange = {
-                    if (it.length <= 6) {
-                        pin = it
-                        viewModel.clearError()
-                    }
+                    if (it.length <= 6) { pin = it; viewModel.clearError() }
                 },
-                label = { Text("Create a PIN (4–6 digits)") },
-                leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null)
-                },
-                trailingIcon = {
+                label         = { Text("Create a PIN (4–6 digits)") },
+                leadingIcon   = { Icon(Icons.Default.Lock, null) },
+                trailingIcon  = {
                     IconButton(onClick = { pinVisible = !pinVisible }) {
                         Icon(
                             imageVector = if (pinVisible) Icons.Default.VisibilityOff
                             else Icons.Default.Visibility,
-                            contentDescription = null
+                            contentDescription = if (pinVisible) "Hide PIN" else "Show PIN"
                         )
                     }
                 },
                 visualTransformation = if (pinVisible) VisualTransformation.None
                 else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                modifier        = Modifier.fillMaxWidth(),
+                singleLine      = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
             )
-
             OutlinedTextField(
-                value = confirmPin,
+                value         = confirmPin,
                 onValueChange = {
-                    if (it.length <= 6) {
-                        confirmPin = it
-                        viewModel.clearError()
-                    }
+                    if (it.length <= 6) { confirmPin = it; viewModel.clearError() }
                 },
-                label = { Text("Confirm PIN") },
-                leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null)
-                },
+                label                = { Text("Confirm PIN") },
+                leadingIcon          = { Icon(Icons.Default.Lock, null) },
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                modifier             = Modifier.fillMaxWidth(),
+                singleLine           = true,
+                keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
             )
-
             if (uiState.error != null) {
                 Text(
-                    text = uiState.error!!,
+                    text  = uiState.error!!,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-
             Button(
-                onClick = { viewModel.register(name, phone, pin, confirmPin) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                enabled = !uiState.isLoading
+                onClick  = { viewModel.register(name, phone, pin, confirmPin) },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                enabled  = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color    = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     Text("Create Account", style = MaterialTheme.typography.titleSmall)
@@ -182,12 +161,12 @@ fun RegisterScreen(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier              = Modifier.fillMaxWidth(),
+                verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Already have an account? ",
+                    text  = "Already have an account? ",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

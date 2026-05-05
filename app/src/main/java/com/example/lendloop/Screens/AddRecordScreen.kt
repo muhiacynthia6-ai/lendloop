@@ -1,4 +1,4 @@
-package com.example.lendloop.screens
+package com.example.lendloop.Screens
 
 import android.app.DatePickerDialog
 import android.net.Uri
@@ -60,8 +60,6 @@ fun AddRecordScreen(
         if (uiState.isSaved) onNavigateBack()
     }
 
-    // ── Activity Launchers ────────────────────────────────────────────────
-
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
@@ -85,8 +83,6 @@ fun AddRecordScreen(
             }
         }
     }
-
-    // ── UI Components ─────────────────────────────────────────────────────
 
     if (showPhotoDialog) {
         PhotoSourceDialog(
@@ -228,8 +224,6 @@ fun AddRecordScreen(
         }
     }
 }
-
-// ── Sub-Composables ───────────────────────────────────────────────────
 
 @Composable
 private fun DirectionToggle(

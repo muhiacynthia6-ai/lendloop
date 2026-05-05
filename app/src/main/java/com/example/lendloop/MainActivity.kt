@@ -22,7 +22,6 @@ class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
-        // granted or denied — worker still runs
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -38,20 +38,15 @@ class MpesaRepository @Inject constructor() {
             .build()
             .create(MpesaApi::class.java)
     }
-
-    // ✅ Single clean initiateStkPush — no duplicate
     suspend fun initiateStkPush(
         phoneNumber: String,
         amount: Double,
         accountRef: String
     ): Result<StkPushResponse> {
         return try {
-            // Step 1 — Get access token
             val token = getAccessToken()
             val bearer = "Bearer $token"
             Log.d("MPESA", "Token obtained: $token")
-
-            // Step 2 — Build STK push request
             val timestamp = MpesaConfig.getTimestamp()
             val password = generatePassword(timestamp)
             val phone = formatPhone(phoneNumber)
@@ -71,8 +66,6 @@ class MpesaRepository @Inject constructor() {
             )
 
             Log.d("MPESA", "STK push request: $request")
-
-            // Step 3 — Send STK push
             val response = api.initiateStkPush(bearer, request)
             Log.d("MPESA", "STK push response: $response")
 
@@ -89,14 +82,10 @@ class MpesaRepository @Inject constructor() {
             Result.failure(Exception("M-Pesa error: ${e.message}"))
         }
     }
-
-    // ✅ Fetches the OAuth access token from Daraja
     private suspend fun getAccessToken(): String {
         val tokenResponse = api.getAccessToken(MpesaConfig.getBasicAuth())
         return tokenResponse.access_token
     }
-
-    // ✅ Generates the Base64 password: shortcode + passkey + timestamp
     private fun generatePassword(timestamp: String): String {
         val raw = "${MpesaConfig.SHORTCODE}${MpesaConfig.PASSKEY}$timestamp"
         return android.util.Base64.encodeToString(
@@ -104,8 +93,6 @@ class MpesaRepository @Inject constructor() {
             android.util.Base64.NO_WRAP
         )
     }
-
-    // ✅ Normalizes phone number to 2547XXXXXXXX format
     private fun formatPhone(phone: String): String {
         val cleaned = phone.trim()
             .replace(" ", "")

@@ -77,16 +77,12 @@ fun PaymentScreen(
     }
 }
 
-/* ---------------- TITLE ---------------- */
-
 fun PaymentStep.title(): String = when (this) {
     PaymentStep.CONFIRM -> "Confirm Payment"
     PaymentStep.PROCESSING -> "Processing"
     PaymentStep.SUCCESS -> "Payment Done"
     PaymentStep.FAILED -> "Payment Failed"
 }
-
-/* ---------------- CONFIRM ---------------- */
 
 @Composable
 fun ConfirmContent(
@@ -126,8 +122,6 @@ fun ConfirmContent(
     }
 }
 
-/* ---------------- PROCESSING ---------------- */
-
 @Composable
 fun ProcessingContent() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -136,8 +130,6 @@ fun ProcessingContent() {
         Text("Recording payment...")
     }
 }
-
-/* ---------------- SUCCESS ---------------- */
 
 @Composable
 fun SuccessContent(amount: Double, onDone: () -> Unit) {
@@ -160,8 +152,6 @@ fun SuccessContent(amount: Double, onDone: () -> Unit) {
         }
     }
 }
-
-/* ---------------- FAILED ---------------- */
 
 @Composable
 fun FailedContent(

@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-// ─── UI State ────────────────────────────────────────────
 sealed class PaymentState {
     object Idle       : PaymentState()
     object Loading    : PaymentState()
@@ -31,7 +29,6 @@ class MpesaViewModel @Inject constructor(
         amount: Double,
         accountRef: String = "LendLoop"
     ) {
-        // Basic validation before hitting the API
         if (phoneNumber.isBlank()) {
             _paymentState.value = PaymentState.Error("Please enter a phone number")
             return

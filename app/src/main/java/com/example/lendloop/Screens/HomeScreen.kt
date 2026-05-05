@@ -25,40 +25,38 @@ import com.example.lendloop.ui.components.EmptyState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onAddRecord: () -> Unit,
-    onRecordClick: (Int) -> Unit,
-    onLogout: () -> Unit,
-    onHistory: () -> Unit,
-    onProfile: () -> Unit,
+    onAddRecord:    () -> Unit,
+    onRecordClick:  (Int) -> Unit,
+    onLogout:       () -> Unit,
+    onHistory:      () -> Unit,
+    onProfile:      () -> Unit,
     onReviewRecord: (recordId: Int, revieweeId: Int) -> Unit,
-    onPayRecord: (recordId: Int, amount: Float, personName: String) -> Unit,
-    navController: NavHostController,
-    viewModel: HomeViewModel = hiltViewModel()
+    onPayRecord:    (recordId: Int, amount: Double, personName: String) -> Unit,
+    navController:  NavHostController,
+    viewModel:      HomeViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-    var showSearch by remember { mutableStateOf(false) }
+    val uiState        by viewModel.uiState.collectAsState()
+    var selectedTab    by remember { mutableIntStateOf(0) }
+    var showLogout     by remember { mutableStateOf(false) }
+    var searchQuery    by remember { mutableStateOf("") }
+    var showSearch     by remember { mutableStateOf(false) }
     val tabs = listOf("Lent Out", "Borrowed")
 
     Scaffold(
         topBar = {
             if (showSearch) {
                 SearchBar(
-                    query = searchQuery,
+                    query         = searchQuery,
                     onQueryChange = { searchQuery = it },
-                    onSearch = {},
-                    active = false,
+                    onSearch      = {},
+                    active        = false,
                     onActiveChange = {},
-                    placeholder = { Text("Search by item or person...") },
-                    leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = null)
-                    },
-                    trailingIcon = {
+                    placeholder   = { Text("Search by item or person...") },
+                    leadingIcon   = { Icon(Icons.Default.Search, null) },
+                    trailingIcon  = {
                         IconButton(onClick = {
                             searchQuery = ""
-                            showSearch = false
+                            showSearch  = false
                         }) {
                             Icon(Icons.Default.Close, contentDescription = "Close search")
                         }
@@ -69,9 +67,7 @@ fun HomeScreen(
                 ) {}
             } else {
                 TopAppBar(
-                    title = {
-                        Text(text = "LendLoop", fontWeight = FontWeight.Bold)
-                    },
+                    title   = { Text("LendLoop", fontWeight = FontWeight.Bold) },
                     actions = {
                         IconButton(onClick = { showSearch = true }) {
                             Icon(Icons.Default.Search, contentDescription = "Search")
@@ -82,7 +78,7 @@ fun HomeScreen(
                         IconButton(onClick = onHistory) {
                             Icon(Icons.Default.History, contentDescription = "History")
                         }
-                        IconButton(onClick = { showLogoutDialog = true }) {
+                        IconButton(onClick = { showLogout = true }) {
                             Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
                         }
                     }
@@ -101,7 +97,7 @@ fun HomeScreen(
                 .padding(padding)
         ) {
             SummaryRow(
-                totalLent = uiState.totalLentAmount,
+                totalLent     = uiState.totalLentAmount,
                 totalBorrowed = uiState.totalBorrowedAmount
             )
 
@@ -109,14 +105,14 @@ fun HomeScreen(
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title) }
+                        onClick  = { selectedTab = index },
+                        text     = { Text(title) }
                     )
                 }
             }
 
             val allRecords = if (selectedTab == 0) uiState.lentOut else uiState.borrowed
-            val records = if (searchQuery.isBlank()) allRecords
+            val records    = if (searchQuery.isBlank()) allRecords
             else allRecords.filter {
                 it.itemName.contains(searchQuery, ignoreCase = true) ||
                         it.personName.contains(searchQuery, ignoreCase = true)
@@ -124,49 +120,45 @@ fun HomeScreen(
 
             if (records.isEmpty()) {
                 EmptyState(
-                    message = if (searchQuery.isNotBlank())
-                        "No results for \"$searchQuery\""
-                    else if (selectedTab == 0)
-                        "Nothing lent out yet.\nTap + to add a record."
-                    else
-                        "Nothing borrowed yet.\nTap + to add a record."
+                    message = when {
+                        searchQuery.isNotBlank() -> "No results for \"$searchQuery\""
+                        selectedTab == 0         -> "Nothing lent out yet.\nTap + to add a record."
+                        else                     -> "Nothing borrowed yet.\nTap + to add a record."
+                    }
                 )
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding    = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(records, key = { it.id }) { record ->
                         BorrowCard(
-                            record = record,
-                            onClick = { onRecordClick(record.id) },
+                            record         = record,
+                            onClick        = { onRecordClick(record.id) },
                             onMarkReturned = { viewModel.markReturned(record.id) },
-                            onReview = { onReviewRecord(record.id, record.personId) }
+                            onReview       = { onReviewRecord(record.id, record.personId) }
                         )
                     }
                 }
             }
         }
     }
-
-    if (showLogoutDialog) {
+    if (showLogout) {
         AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Log out?") },
-            text = { Text("You'll need your phone number and PIN to log back in.") },
-            confirmButton = {
+            onDismissRequest = { showLogout = false },
+            title            = { Text("Log out?") },
+            text             = { Text("You'll need your phone number and PIN to log back in.") },
+            confirmButton    = {
                 TextButton(onClick = {
-                    showLogoutDialog = false
+                    showLogout = false
                     viewModel.logout()
                     onLogout()
                 }) {
                     Text("Log out", color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel")
-                }
+            dismissButton    = {
+                TextButton(onClick = { showLogout = false }) { Text("Cancel") }
             }
         )
     }
@@ -175,21 +167,21 @@ fun HomeScreen(
 @Composable
 fun SummaryRow(totalLent: Double, totalBorrowed: Double) {
     Row(
-        modifier = Modifier
+        modifier              = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         SummaryCard(
-            modifier = Modifier.weight(1f),
-            label = "Total Lent Out",
-            amount = totalLent,
+            modifier       = Modifier.weight(1f),
+            label          = "Total Lent Out",
+            amount         = totalLent,
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
         SummaryCard(
-            modifier = Modifier.weight(1f),
-            label = "Total Borrowed",
-            amount = totalBorrowed,
+            modifier       = Modifier.weight(1f),
+            label          = "Total Borrowed",
+            amount         = totalBorrowed,
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     }
@@ -197,21 +189,21 @@ fun SummaryRow(totalLent: Double, totalBorrowed: Double) {
 
 @Composable
 fun SummaryCard(
-    modifier: Modifier = Modifier,
-    label: String,
-    amount: Double,
+    modifier:       Modifier = Modifier,
+    label:          String,
+    amount:         Double,
     containerColor: Color
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        colors   = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(text = label, style = MaterialTheme.typography.labelSmall)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = if (amount > 0) "Ksh %.0f".format(amount) else "—",
-                style = MaterialTheme.typography.titleMedium,
+                text       = if (amount > 0) "Ksh %.0f".format(amount) else "—",
+                style      = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }

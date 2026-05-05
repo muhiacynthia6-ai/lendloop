@@ -74,8 +74,6 @@ fun ProfileContent(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
-                // ── Profile header ────────────────────────────────────────
                 item {
                     ProfileHeader(
                         userName      = uiState.userName,
@@ -83,8 +81,6 @@ fun ProfileContent(
                         reviewCount   = uiState.reviews.size
                     )
                 }
-
-                // ── Trust score ───────────────────────────────────────────
                 item {
                     Text(
                         text = "TRUST SCORE",
@@ -95,8 +91,6 @@ fun ProfileContent(
                     Spacer(modifier = Modifier.height(6.dp))
                     TrustScoreCard(trustScore = uiState.trustScore)
                 }
-
-                // ── Stats ─────────────────────────────────────────────────
                 item {
                     Text(
                         text = "STATS",
@@ -107,8 +101,6 @@ fun ProfileContent(
                     Spacer(modifier = Modifier.height(6.dp))
                     StatsRow(trustScore = uiState.trustScore)
                 }
-
-                // ── Restriction banner ────────────────────────────────────
                 uiState.trustScore?.let { score ->
                     if (score.isRestricted) {
                         item {
@@ -118,8 +110,6 @@ fun ProfileContent(
                         }
                     }
                 }
-
-                // ── Reviews header ────────────────────────────────────────
                 item {
                     Text(
                         text = "REVIEWS (${uiState.reviews.size})",
@@ -128,8 +118,6 @@ fun ProfileContent(
                         letterSpacing = 1.sp
                     )
                 }
-
-                // ── Reviews list ──────────────────────────────────────────
                 if (uiState.reviews.isEmpty()) {
                     item {
                         Card(

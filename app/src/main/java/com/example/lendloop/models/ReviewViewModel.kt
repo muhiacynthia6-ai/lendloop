@@ -1,4 +1,4 @@
-package com.example.lendloop.ui.review
+package com.example.lendloop.models
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -29,7 +29,7 @@ class ReviewViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val recordId: Int = checkNotNull(savedStateHandle["recordId"])
+    private val recordId: Int  = checkNotNull(savedStateHandle["recordId"])
     private val revieweeId: Int = checkNotNull(savedStateHandle["revieweeId"])
 
     private val _uiState = MutableStateFlow(ReviewUiState())
@@ -73,11 +73,11 @@ class ReviewViewModel @Inject constructor(
             _uiState.value = state.copy(isLoading = true)
             reviewRepository.submitReview(
                 Review(
-                    recordId = recordId,
+                    recordId   = recordId,
                     reviewerId = reviewerId,
                     revieweeId = revieweeId,
-                    rating = state.rating,
-                    comment = state.comment.ifBlank { null }
+                    rating     = state.rating,
+                    comment    = state.comment.ifBlank { null }
                 )
             )
             _uiState.value = _uiState.value.copy(isLoading = false, isSubmitted = true)

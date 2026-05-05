@@ -54,8 +54,6 @@ fun EditRecordScreen(
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) onNavigateBack()
     }
-
-    // ── Camera launcher ───────────────────────────────────────────────────
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
@@ -63,15 +61,11 @@ fun EditRecordScreen(
             cameraUri?.let { viewModel.onPhotoUriChange(it.toString()) }
         }
     }
-
-    // ── Gallery launcher ──────────────────────────────────────────────────
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.onPhotoUriChange(it.toString()) }
     }
-
-    // ── Contacts launcher ─────────────────────────────────────────────────
     val contactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickContact()
     ) { uri: Uri? ->
@@ -81,8 +75,6 @@ fun EditRecordScreen(
             }
         }
     }
-
-    // ── Photo picker dialog ───────────────────────────────────────────────
     if (showPhotoDialog) {
         AlertDialog(
             onDismissRequest = { showPhotoDialog = false },
@@ -162,8 +154,6 @@ fun EditRecordScreen(
             if (uiState.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
-
-            // ── Direction toggle ──────────────────────────────────────────
             Text("I...", style = MaterialTheme.typography.labelLarge)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
@@ -177,8 +167,6 @@ fun EditRecordScreen(
                     label    = { Text("Borrowed something") }
                 )
             }
-
-            // ── Item name ─────────────────────────────────────────────────
             OutlinedTextField(
                 value          = uiState.itemName,
                 onValueChange  = viewModel::onItemNameChange,
@@ -192,8 +180,6 @@ fun EditRecordScreen(
                         Text("Required", color = MaterialTheme.colorScheme.error)
                 }
             )
-
-            // ── Person ────────────────────────────────────────────────────
             Text("Person", style = MaterialTheme.typography.labelLarge)
             Row(
                 modifier              = Modifier.fillMaxWidth(),
@@ -223,8 +209,6 @@ fun EditRecordScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
-            // ── Category ──────────────────────────────────────────────────
             Text("Category", style = MaterialTheme.typography.labelLarge)
             Row(
                 modifier              = Modifier.fillMaxWidth(),
@@ -238,8 +222,6 @@ fun EditRecordScreen(
                     )
                 }
             }
-
-            // ── Electronics details ───────────────────────────────────────
             if (uiState.category == "Electronics") {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -316,8 +298,6 @@ fun EditRecordScreen(
                     }
                 }
             }
-
-            // ── Amount ────────────────────────────────────────────────────
             OutlinedTextField(
                 value           = uiState.amount,
                 onValueChange   = viewModel::onAmountChange,
@@ -327,8 +307,6 @@ fun EditRecordScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 prefix          = { Text("Ksh ") }
             )
-
-            // ── Photo ─────────────────────────────────────────────────────
             Text("Photo", style = MaterialTheme.typography.labelLarge)
             if (uiState.photoUri != null) {
                 Box(modifier = Modifier.fillMaxWidth()) {
@@ -369,8 +347,6 @@ fun EditRecordScreen(
                     Text("Add a photo")
                 }
             }
-
-            // ── Due date ──────────────────────────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -407,8 +383,6 @@ fun EditRecordScreen(
                     Text("Due: ${uiState.dueDate!!.toFormattedDate()}")
                 }
             }
-
-            // ── Note ──────────────────────────────────────────────────────
             OutlinedTextField(
                 value         = uiState.note,
                 onValueChange = viewModel::onNoteChange,
@@ -417,8 +391,6 @@ fun EditRecordScreen(
                 modifier      = Modifier.fillMaxWidth(),
                 minLines      = 2
             )
-
-            // ── Error ─────────────────────────────────────────────────────
             if (uiState.error != null) {
                 Text(
                     text  = "⚠️ ${uiState.error}",
@@ -426,8 +398,6 @@ fun EditRecordScreen(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-
-            // ── Save button ───────────────────────────────────────────────
             Button(
                 onClick  = viewModel::saveChanges,
                 enabled  = !uiState.isLoading,

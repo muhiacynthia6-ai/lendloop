@@ -182,8 +182,6 @@ class EditRecordViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-
-            // Update record
             repository.updateRecord(
                 BorrowRecord(
                     id = recordId,
@@ -198,8 +196,6 @@ class EditRecordViewModel @Inject constructor(
                     note = state.note.ifBlank { null }
                 )
             )
-
-            // Update or Insert electronics details
             if (state.category == "Electronics") {
                 val existingDetail = electronicsRepository.getDetailForRecord(recordId)
                 val detail = ElectronicsDetail(
@@ -211,7 +207,7 @@ class EditRecordViewModel @Inject constructor(
                     condition = state.condition,
                     estimatedValue = state.estimatedValue.toDoubleOrNull()
                 )
-                electronicsRepository.insertDetail(detail) // DAO uses REPLACE
+                electronicsRepository.insertDetail(detail)
             }
 
             _uiState.value = _uiState.value.copy(isLoading = false, isSaved = true)
