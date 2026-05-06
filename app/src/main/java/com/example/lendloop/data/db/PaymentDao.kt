@@ -18,13 +18,16 @@ interface PaymentDao {
     @Query("SELECT * FROM payments WHERE id = :id")
     suspend fun getPaymentById(id: Int): Payment?
 
+    @Query("SELECT * FROM payments WHERE status = 'CONFIRMED' ORDER BY paidAt DESC")
+    fun getAllConfirmedPayments(): Flow<List<Payment>>
+
     @Query("""
         UPDATE payments 
         SET status = 'CONFIRMED', paidAt = :paidAt 
         WHERE id = :id
     """)
-    suspend fun confirmPayment(id: Int, paidAt: Long = System.currentTimeMillis())
 
+    suspend fun confirmPayment(id: Int, paidAt: Long = System.currentTimeMillis())
     @Query("SELECT * FROM payments WHERE recordId = :recordId AND status = 'CONFIRMED' LIMIT 1")
     suspend fun getConfirmedPayment(recordId: Int): Payment?
 }

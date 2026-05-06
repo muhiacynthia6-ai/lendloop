@@ -32,8 +32,9 @@ class BorrowRepository @Inject constructor(
     }
     suspend fun updateRecord(record: BorrowRecord) = dao.updateRecord(record)
     suspend fun deleteRecord(record: BorrowRecord) = dao.deleteRecord(record)
-    fun getActiveRecords(): Flow<List<BorrowRecord>> = dao.getActiveRecords()
+    fun getActiveRecords(): Flow<List<BorrowRecord>>  = dao.getActiveRecords()
     fun getReturnedRecords(): Flow<List<BorrowRecord>> = dao.getReturnedRecords()
+    fun getAllRecords(): Flow<List<BorrowRecord>>      = dao.getAllRecords()   // ✅ NEW
     fun getRecordsByPerson(personId: Int): Flow<List<BorrowRecord>> =
         dao.getRecordsByPerson(personId)
     suspend fun getRecordById(id: Int): BorrowRecord? = dao.getRecordById(id)

@@ -1,4 +1,4 @@
-package com.example.lendloop.ui.models
+package com.example.lendloop.models   // ✅ Fixed: was com.example.lendloop.ui.models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,11 +9,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-sealed class PaymentState {
-    object Idle       : PaymentState()
-    object Loading    : PaymentState()
-    data class Success(val message: String) : PaymentState()
-    data class Error(val message: String)   : PaymentState()
+
+sealed class MpesaState {
+    object Idle    : MpesaState()
+    object Loading : MpesaState()
+    data class Success(val message: String) : MpesaState()
+    data class Error(val message: String)   : MpesaState()
 }
 
 @HiltViewModel
@@ -21,25 +22,21 @@ class MpesaViewModel @Inject constructor(
     private val repository: MpesaRepository
 ) : ViewModel() {
 
-    private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Idle)
-    val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
+    private val _state = MutableStateFlow<MpesaState>(MpesaState.Idle)
+    val state: StateFlow<MpesaState> = _state.asStateFlow()
 
-    fun pay(
-        phoneNumber: String,
-        amount: Double,
-        accountRef: String = "LendLoop"
-    ) {
+    fun pay(phoneNumber: String, amount: Double, accountRef: String = "LendLoop") {
         if (phoneNumber.isBlank()) {
-            _paymentState.value = PaymentState.Error("Please enter a phone number")
+            _state.value = MpesaState.Error("Please enter a phone number")
             return
         }
         if (amount <= 0) {
-            _paymentState.value = PaymentState.Error("Amount must be greater than 0")
+            _state.value = MpesaState.Error("Amount must be greater than 0")
             return
         }
 
         viewModelScope.launch {
-            _paymentState.value = PaymentState.Loading
+            _state.value = MpesaState.Loading
 
             val result = repository.initiateStkPush(
                 phoneNumber = phoneNumber,
@@ -47,20 +44,16 @@ class MpesaViewModel @Inject constructor(
                 accountRef  = accountRef
             )
 
-            _paymentState.value = result.fold(
+            _state.value = result.fold(
                 onSuccess = {
-                    PaymentState.Success(
-                        it.CustomerMessage ?: "Check your phone to complete payment"
-                    )
+                    MpesaState.Success(it.CustomerMessage ?: "Check your phone to complete payment")
                 },
                 onFailure = {
-                    PaymentState.Error(it.message ?: "Payment failed")
+                    MpesaState.Error(it.message ?: "M-Pesa payment failed")
                 }
             )
         }
     }
 
-    fun resetState() {
-        _paymentState.value = PaymentState.Idle
-    }
+    fun reset() { _state.value = MpesaState.Idle }
 }

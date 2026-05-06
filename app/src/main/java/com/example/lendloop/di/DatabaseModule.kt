@@ -32,7 +32,6 @@ object DatabaseModule {
             .build()
     }
 
-    // ── DAOs ──────────────────────────────────────────────────────────────
 
     @Provides @Singleton
     fun provideBorrowDao(db: LendLoopDatabase): BorrowDao = db.borrowDao()
@@ -51,8 +50,6 @@ object DatabaseModule {
 
     @Provides @Singleton
     fun provideElectronicsDao(db: LendLoopDatabase): ElectronicsDao = db.electronicsDao()
-
-    // ── Repositories ──────────────────────────────────────────────────────
 
     @Provides @Singleton
     fun provideAuthRepository(userDao: UserDao): AuthRepository =

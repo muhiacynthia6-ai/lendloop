@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ fun BorrowCard(
     onClick: () -> Unit,
     onMarkReturned: () -> Unit,
     onReview: (() -> Unit)? = null,
+    onPay: (() -> Unit)? = null,          // ✅ NEW — triggers payment screen
     showRemindButton: Boolean = false,
     onRemind: () -> Unit = {}
 ) {
@@ -104,6 +106,18 @@ fun BorrowCard(
                             )
                         }
                     }
+
+                    // ✅ Pay button — only shows when record has an amount
+                    if (onPay != null && record.amount != null) {
+                        IconButton(onClick = onPay) {
+                            Icon(
+                                imageVector = Icons.Default.Payment,
+                                contentDescription = "Pay",
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    }
+
                     IconButton(onClick = { showConfirm = true }) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
@@ -126,7 +140,7 @@ fun BorrowCard(
                 TextButton(onClick = {
                     onMarkReturned()
                     showConfirm = false
-                    onReview?.invoke() // ← triggers review screen after confirming
+                    onReview?.invoke()
                 }) {
                     Text("Yes, returned")
                 }

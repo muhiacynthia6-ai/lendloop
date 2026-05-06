@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,6 +31,7 @@ fun HomeScreen(
     onLogout:       () -> Unit,
     onHistory:      () -> Unit,
     onProfile:      () -> Unit,
+    onDashboard:    () -> Unit,                   // ✅ NEW
     onReviewRecord: (recordId: Int, revieweeId: Int) -> Unit,
     onPayRecord:    (recordId: Int, amount: Double, personName: String) -> Unit,
     navController:  NavHostController,
@@ -46,14 +48,14 @@ fun HomeScreen(
         topBar = {
             if (showSearch) {
                 SearchBar(
-                    query         = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    onSearch      = {},
-                    active        = false,
+                    query          = searchQuery,
+                    onQueryChange  = { searchQuery = it },
+                    onSearch       = {},
+                    active         = false,
                     onActiveChange = {},
-                    placeholder   = { Text("Search by item or person...") },
-                    leadingIcon   = { Icon(Icons.Default.Search, null) },
-                    trailingIcon  = {
+                    placeholder    = { Text("Search by item or person...") },
+                    leadingIcon    = { Icon(Icons.Default.Search, null) },
+                    trailingIcon   = {
                         IconButton(onClick = {
                             searchQuery = ""
                             showSearch  = false
@@ -77,6 +79,10 @@ fun HomeScreen(
                         }
                         IconButton(onClick = onHistory) {
                             Icon(Icons.Default.History, contentDescription = "History")
+                        }
+                        // ✅ NEW — Dashboard icon
+                        IconButton(onClick = onDashboard) {
+                            Icon(Icons.Default.PieChart, contentDescription = "Dashboard")
                         }
                         IconButton(onClick = { showLogout = true }) {
                             Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
@@ -128,7 +134,7 @@ fun HomeScreen(
                 )
             } else {
                 LazyColumn(
-                    contentPadding    = PaddingValues(16.dp),
+                    contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(records, key = { it.id }) { record ->
@@ -136,13 +142,15 @@ fun HomeScreen(
                             record         = record,
                             onClick        = { onRecordClick(record.id) },
                             onMarkReturned = { viewModel.markReturned(record.id) },
-                            onReview       = { onReviewRecord(record.id, record.personId) }
+                            onReview       = { onReviewRecord(record.id, record.personId) },
+                            onPay          = { onPayRecord(record.id, record.amount ?: 0.0, record.personName) }
                         )
                     }
                 }
             }
         }
     }
+
     if (showLogout) {
         AlertDialog(
             onDismissRequest = { showLogout = false },

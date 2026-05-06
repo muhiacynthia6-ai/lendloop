@@ -20,7 +20,6 @@ interface BorrowDao {
     @Query("SELECT * FROM persons WHERE id = :id")
     suspend fun getPersonById(id: Int): Person?
 
-
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertCategory(category: Category)
 
@@ -41,6 +40,10 @@ interface BorrowDao {
 
     @Query("SELECT * FROM borrow_records WHERE status = 'RETURNED' ORDER BY returnedAt DESC")
     fun getReturnedRecords(): Flow<List<BorrowRecord>>
+
+    // ✅ NEW — used by DashboardViewModel for charts and recent activity
+    @Query("SELECT * FROM borrow_records ORDER BY lentAt DESC")
+    fun getAllRecords(): Flow<List<BorrowRecord>>
 
     @Query("SELECT * FROM borrow_records WHERE personId = :personId ORDER BY lentAt DESC")
     fun getRecordsByPerson(personId: Int): Flow<List<BorrowRecord>>

@@ -3,17 +3,7 @@ package com.example.lendloop.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.*
 import androidx.navigation.compose.*
-import com.example.lendloop.Screens.AddRecordScreen
-import com.example.lendloop.Screens.EditRecordScreen
-import com.example.lendloop.Screens.HistoryScreen
-import com.example.lendloop.Screens.HomeScreen
-import com.example.lendloop.Screens.LoginScreen
-import com.example.lendloop.Screens.PaymentScreen
-import com.example.lendloop.Screens.PersonScreen
-import com.example.lendloop.Screens.ProfileScreen
-import com.example.lendloop.Screens.RegisterScreen
-import com.example.lendloop.Screens.ReviewScreen
-import com.example.lendloop.Screens.WelcomeScreen
+import com.example.lendloop.Screens.*
 import com.example.lendloop.util.SessionManager
 
 @Composable
@@ -21,8 +11,9 @@ fun LendLoopNavGraph(
     sessionManager: SessionManager,
     navController: NavHostController = rememberNavController()
 ) {
+    // ✅ After login → Dashboard (role selector) first, not Home
     val startDestination =
-        if (sessionManager.isLoggedIn()) Routes.HOME else Routes.WELCOME
+        if (sessionManager.isLoggedIn()) Routes.DASHBOARD else Routes.WELCOME
 
     NavHost(navController = navController, startDestination = startDestination) {
 
@@ -41,7 +32,7 @@ fun LendLoopNavGraph(
                     }
                 },
                 onRegisterSuccess = {
-                    navController.navigate(Routes.HOME) {
+                    navController.navigate(Routes.DASHBOARD) {   // ✅ → Dashboard
                         popUpTo(Routes.WELCOME) { inclusive = true }
                     }
                 },
@@ -52,9 +43,26 @@ fun LendLoopNavGraph(
         composable(Routes.LOGIN) {
             LoginScreen(
                 onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
-                onLoginSuccess       = {
-                    navController.navigate(Routes.HOME) {
+                onLoginSuccess = {
+                    navController.navigate(Routes.DASHBOARD) {   // ✅ → Dashboard
                         popUpTo(Routes.WELCOME) { inclusive = true }
+                    }
+                },
+                navController = navController
+            )
+        }
+
+        // ✅ Dashboard is now the landing screen after login
+        composable(Routes.DASHBOARD) {
+            DashboardScreen(
+                onNavigateToHome = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.DASHBOARD) { inclusive = false }
+                    }
+                },
+                onLogout = {
+                    navController.navigate(Routes.WELCOME) {
+                        popUpTo(Routes.DASHBOARD) { inclusive = true }
                     }
                 },
                 navController = navController
@@ -66,21 +74,20 @@ fun LendLoopNavGraph(
                 onAddRecord    = { navController.navigate(Routes.ADD_RECORD) },
                 onHistory      = { navController.navigate(Routes.HISTORY) },
                 onProfile      = { navController.navigate(Routes.PROFILE) },
-                onRecordClick  = { id ->
-                    navController.navigate(Routes.personRoute(id))
-                },
+                onDashboard    = { navController.navigate(Routes.DASHBOARD) },
+                onRecordClick  = { id -> navController.navigate(Routes.personRoute(id)) },
                 onReviewRecord = { recordId, revieweeId ->
                     navController.navigate(Routes.reviewRoute(recordId, revieweeId))
                 },
-                onPayRecord    = { recordId, amount, personName ->
+                onPayRecord = { recordId, amount, personName ->
                     navController.navigate(Routes.paymentRoute(recordId, amount, personName))
                 },
-                onLogout       = {
+                onLogout = {
                     navController.navigate(Routes.WELCOME) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
                 },
-                navController  = navController
+                navController = navController
             )
         }
 
@@ -126,7 +133,7 @@ fun LendLoopNavGraph(
         }
 
         composable(
-            route     = Routes.REVIEW,
+            route = Routes.REVIEW,
             arguments = listOf(
                 navArgument("recordId")   { type = NavType.IntType },
                 navArgument("revieweeId") { type = NavType.IntType }
@@ -134,17 +141,17 @@ fun LendLoopNavGraph(
         ) {
             ReviewScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onDone         = {
+                onDone = {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
                 },
-                navController  = navController
+                navController = navController
             )
         }
 
         composable(
-            route     = Routes.PAYMENT,
+            route = Routes.PAYMENT,
             arguments = listOf(
                 navArgument("recordId")   { type = NavType.IntType },
                 navArgument("amount")     { type = NavType.StringType },
@@ -158,7 +165,7 @@ fun LendLoopNavGraph(
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
                 },
-                navController  = navController
+                navController = navController
             )
         }
     }
