@@ -61,6 +61,10 @@ class PersonViewModel @Inject constructor(
         }
     }
 
+    fun deleteRecord(record: BorrowRecord) {
+        viewModelScope.launch { repository.deleteRecord(record) }
+    }
+
     fun markReturned(id: Int) {
         viewModelScope.launch {
             repository.markReturned(id)

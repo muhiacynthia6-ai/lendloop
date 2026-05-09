@@ -15,7 +15,7 @@ class PaymentRepository @Inject constructor(
     fun getPaymentsForRecord(recordId: Int): Flow<List<Payment>> =
         dao.getPaymentsForRecord(recordId)
     fun getAllConfirmedPayments(): Flow<List<Payment>> =
-        dao.getAllConfirmedPayments()                          // ✅ NEW
+        dao.getAllConfirmedPayments()
     suspend fun getConfirmedPayment(recordId: Int): Payment? =
         dao.getConfirmedPayment(recordId)
     suspend fun getPaymentById(id: Int): Payment? = dao.getPaymentById(id)

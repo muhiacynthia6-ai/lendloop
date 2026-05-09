@@ -236,12 +236,12 @@ private fun DirectionToggle(
             FilterChip(
                 selected = direction == Direction.LENT,
                 onClick = { onDirectionChange(Direction.LENT) },
-                label = { Text("Lent something out") }
+                label = { Text("Lend something out") }
             )
             FilterChip(
                 selected = direction == Direction.BORROWED,
                 onClick = { onDirectionChange(Direction.BORROWED) },
-                label = { Text("Borrowed something") }
+                label = { Text("Borrow something") }
             )
         }
     }

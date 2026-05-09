@@ -12,24 +12,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.lendloop.data.db.Review
 import com.example.lendloop.data.db.TrustScore
-import com.example.lendloop.models.ProfileViewModel
 import com.example.lendloop.models.ProfileUiState
+import com.example.lendloop.models.ProfileViewModel
 import com.example.lendloop.ui.components.TrustScoreCard
 import com.example.lendloop.util.toFormattedDate
 
 @Composable
 fun ProfileScreen(
-    onNavigateBack: () -> Unit,
-    navController: NavController,
+    onNavigateBack: () -> Unit,                          // navController removed — unused
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -59,7 +57,7 @@ fun ProfileContent(
     ) { padding ->
         if (uiState.isLoading) {
             Box(
-                modifier = Modifier
+                modifier         = Modifier
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
@@ -68,10 +66,10 @@ fun ProfileContent(
             }
         } else {
             LazyColumn(
-                modifier = Modifier
+                modifier            = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding      = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
@@ -83,9 +81,9 @@ fun ProfileContent(
                 }
                 item {
                     Text(
-                        text = "TRUST SCORE",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text          = "TRUST SCORE",
+                        style         = MaterialTheme.typography.labelSmall,
+                        color         = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -93,9 +91,9 @@ fun ProfileContent(
                 }
                 item {
                     Text(
-                        text = "STATS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text          = "STATS",
+                        style         = MaterialTheme.typography.labelSmall,
+                        color         = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -104,17 +102,15 @@ fun ProfileContent(
                 uiState.trustScore?.let { score ->
                     if (score.isRestricted) {
                         item {
-                            RestrictionBanner(
-                                restrictedUntil = score.restrictedUntil
-                            )
+                            RestrictionBanner(restrictedUntil = score.restrictedUntil)
                         }
                     }
                 }
                 item {
                     Text(
-                        text = "REVIEWS (${uiState.reviews.size})",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text          = "REVIEWS (${uiState.reviews.size})",
+                        style         = MaterialTheme.typography.labelSmall,
+                        color         = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                 }
@@ -122,21 +118,20 @@ fun ProfileContent(
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
+                            colors   = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         ) {
                             Box(
-                                modifier = Modifier
+                                modifier         = Modifier
                                     .fillMaxWidth()
                                     .padding(24.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No reviews yet.\n" +
-                                            "Complete transactions to earn reviews.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    text      = "No reviews yet.\nComplete transactions to earn reviews.",
+                                    style     = MaterialTheme.typography.bodyMedium,
+                                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -160,28 +155,27 @@ fun ProfileHeader(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors   = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
         Column(
-            modifier = Modifier
+            modifier            = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.primary,
+                shape    = MaterialTheme.shapes.extraLarge,
+                color    = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(72.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = userName.firstOrNull()
-                            ?.uppercaseChar()?.toString() ?: "?",
-                        style = MaterialTheme.typography.headlineMedium,
+                        text       = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        style      = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color      = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
@@ -189,37 +183,31 @@ fun ProfileHeader(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = userName,
-                style = MaterialTheme.typography.titleLarge,
+                text       = userName,
+                style      = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 (1..5).forEach { star ->
                     Icon(
-                        imageVector = if (star <= averageRating.toInt())
-                            Icons.Filled.Star
-                        else
-                            Icons.Outlined.StarOutline,
+                        imageVector        = if (star <= averageRating.toInt()) Icons.Filled.Star
+                        else Icons.Outlined.StarOutline,
                         contentDescription = null,
-                        tint = if (star <= averageRating.toInt())
-                            Color(0xFFFFC107)
-                        else
-                            Color.Gray,
-                        modifier = Modifier.size(20.dp)
+                        tint               = if (star <= averageRating.toInt()) Color(0xFFFFC107)
+                        else Color.Gray,
+                        modifier           = Modifier.size(20.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = if (averageRating > 0)
-                        "%.1f ($reviewCount reviews)".format(averageRating)
-                    else
-                        "No reviews yet",
+                    text  = if (averageRating > 0) "%.1f ($reviewCount reviews)".format(averageRating)
+                    else "No reviews yet",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -231,7 +219,7 @@ fun ProfileHeader(
 @Composable
 fun StatsRow(trustScore: TrustScore?) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier              = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         StatCard(
@@ -268,26 +256,26 @@ fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
+        colors   = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
-            modifier = Modifier
+            modifier            = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text  = value,
-                style = MaterialTheme.typography.titleLarge,
+                text       = value,
+                style      = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = color
+                color      = color
             )
             Text(
-                text  = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text      = label,
+                style     = MaterialTheme.typography.labelSmall,
+                color     = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -298,21 +286,21 @@ fun StatCard(
 fun RestrictionBanner(restrictedUntil: Long?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors   = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text  = "🔒 Borrowing Restricted",
-                style = MaterialTheme.typography.titleSmall,
+                text       = "🔒 Borrowing Restricted",
+                style      = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+                color      = MaterialTheme.colorScheme.error
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text  = "Your return rate dropped below 50%. You cannot borrow " +
-                        "items until ${restrictedUntil?.toFormattedDate() ?: "restriction lifts"}.",
+                text  = "Your return rate dropped below 50%. You cannot borrow items " +
+                        "until ${restrictedUntil?.toFormattedDate() ?: "restriction lifts"}.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )
@@ -330,29 +318,25 @@ fun RestrictionBanner(restrictedUntil: Long?) {
 fun ReviewCard(review: Review) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors   = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment     = Alignment.CenterVertically
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     (1..5).forEach { star ->
                         Icon(
-                            imageVector = if (star <= review.rating)
-                                Icons.Filled.Star
-                            else
-                                Icons.Outlined.StarOutline,
+                            imageVector        = if (star <= review.rating) Icons.Filled.Star
+                            else Icons.Outlined.StarOutline,
                             contentDescription = null,
-                            tint = if (star <= review.rating)
-                                Color(0xFFFFC107)
-                            else
-                                Color.Gray,
-                            modifier = Modifier.size(16.dp)
+                            tint               = if (star <= review.rating) Color(0xFFFFC107)
+                            else Color.Gray,
+                            modifier           = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -380,17 +364,35 @@ fun ProfileScreenPreview() {
     MaterialTheme {
         ProfileContent(
             uiState = ProfileUiState(
-                userName = "John Doe",
+                userName      = "John Doe",
                 averageRating = 4.5f,
-                reviews = listOf(
-                    Review(id = 1, recordId = 1, reviewerId = 2, revieweeId = 1, rating = 5, comment = "Great guy!"),
-                    Review(id = 2, recordId = 2, reviewerId = 3, revieweeId = 1, rating = 4, comment = "Prompt return.")
+                reviews       = listOf(
+                    Review(
+                        id         = 1,
+                        recordId   = 1,
+                        reviewerId = "2",
+                        revieweeId = "1",
+                        rating     = 5,
+                        comment    = "Great guy!",
+                        createdAt  = System.currentTimeMillis()
+                    ),
+                    Review(
+                        id         = 2,
+                        recordId   = 2,
+                        reviewerId = "3",
+                        revieweeId = "1",
+                        rating     = 4,
+                        comment    = "Prompt return.",
+                        createdAt  = System.currentTimeMillis()
+                    )
                 ),
                 trustScore = TrustScore(
-                    userId = 1,
-                    totalBorrowed = 10,
-                    totalReturned = 9,
-                    returnRate = 90f
+                    userId          = "1",
+                    totalBorrowed   = 10,
+                    totalReturned   = 9,
+                    returnRate      = 90f,
+                    isRestricted    = false,
+                    restrictedUntil = null
                 )
             ),
             onNavigateBack = {}

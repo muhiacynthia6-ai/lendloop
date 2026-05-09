@@ -26,15 +26,26 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    fun register(name: String, phone: String, pin: String, confirmPin: String) {
-        if (name.isBlank())        { setError("Please enter your name");         return }
-        if (phone.isBlank())       { setError("Please enter your phone number"); return }
-        if (pin.length < 4)        { setError("PIN must be at least 4 digits");  return }
-        if (pin != confirmPin)     { setError("PINs do not match");              return }
+    fun register(name: String, email: String, password: String, confirmPassword: String) {
+        if (name.isBlank()) {
+            setError("Please enter your name"); return
+        }
+        if (email.isBlank()) {
+            setError("Please enter your email"); return
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            setError("Please enter a valid email"); return
+        }
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters"); return
+        }
+        if (password != confirmPassword) {
+            setError("Passwords do not match"); return
+        }
 
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
-            authRepository.register(name, phone, pin).fold(
+            authRepository.register(name, email, password).fold(
                 onSuccess = { user ->
                     sessionManager.saveSession(user.id, user.name)
                     _uiState.value = AuthUiState(isSuccess = true)
@@ -44,13 +55,17 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun login(phone: String, pin: String) {
-        if (phone.isBlank()) { setError("Please enter your phone number"); return }
-        if (pin.isBlank())   { setError("Please enter your PIN");          return }
+    fun login(email: String, password: String) {
+        if (email.isBlank()) {
+            setError("Please enter your email"); return
+        }
+        if (password.isBlank()) {
+            setError("Please enter your password"); return
+        }
 
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
-            authRepository.login(phone, pin).fold(
+            authRepository.login(email, password).fold(
                 onSuccess = { user ->
                     sessionManager.saveSession(user.id, user.name)
                     _uiState.value = AuthUiState(isSuccess = true)
@@ -60,12 +75,25 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
+    fun sendPasswordReset(email: String) {
+        if (email.isBlank()) {
+            setError("Please enter your email"); return
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            setError("Please enter a valid email"); return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = AuthUiState(isLoading = true)
+            authRepository.sendPasswordReset(email).fold(
+                onSuccess = { _uiState.value = AuthUiState(isSuccess = true) },
+                onFailure = { setError(it.message ?: "Failed to send reset email") }
+            )
+        }
     }
-    fun resetState() {
-        _uiState.value = AuthUiState()
-    }
+
+    fun clearError()  { _uiState.value = _uiState.value.copy(error = null) }
+    fun resetState()  { _uiState.value = AuthUiState() }
 
     private fun setError(message: String) {
         _uiState.value = AuthUiState(error = message)

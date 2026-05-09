@@ -6,11 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,15 +28,14 @@ fun RegisterScreen(
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val uiState    by viewModel.uiState.collectAsState()
-    var name       by remember { mutableStateOf("") }
-    var phone      by remember { mutableStateOf("") }
-    var pin        by remember { mutableStateOf("") }
-    var confirmPin by remember { mutableStateOf("") }
-    var pinVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        viewModel.resetState()
-    }
+    val uiState         by viewModel.uiState.collectAsState()
+    var name            by remember { mutableStateOf("") }
+    var email           by remember { mutableStateOf("") }
+    var password        by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) { viewModel.resetState() }
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             viewModel.resetState()
@@ -54,10 +49,7 @@ fun RegisterScreen(
                 title = { Text("Create Account", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToLogin) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -85,6 +77,7 @@ fun RegisterScreen(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value         = name,
                 onValueChange = { name = it; viewModel.clearError() },
@@ -93,49 +86,49 @@ fun RegisterScreen(
                 modifier      = Modifier.fillMaxWidth(),
                 singleLine    = true
             )
+
             OutlinedTextField(
-                value           = phone,
-                onValueChange   = { phone = it; viewModel.clearError() },
-                label           = { Text("Phone number") },
-                leadingIcon     = { Icon(Icons.Default.Phone, null) },
+                value           = email,
+                onValueChange   = { email = it; viewModel.clearError() },
+                label           = { Text("Email address") },
+                leadingIcon     = { Icon(Icons.Default.Email, null) },
                 modifier        = Modifier.fillMaxWidth(),
                 singleLine      = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
+
             OutlinedTextField(
-                value         = pin,
-                onValueChange = {
-                    if (it.length <= 6) { pin = it; viewModel.clearError() }
-                },
-                label         = { Text("Create a PIN (4–6 digits)") },
+                value         = password,
+                onValueChange = { password = it; viewModel.clearError() },
+                label         = { Text("Password") },
                 leadingIcon   = { Icon(Icons.Default.Lock, null) },
                 trailingIcon  = {
-                    IconButton(onClick = { pinVisible = !pinVisible }) {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = if (pinVisible) Icons.Default.VisibilityOff
+                            imageVector        = if (passwordVisible) Icons.Default.VisibilityOff
                             else Icons.Default.Visibility,
-                            contentDescription = if (pinVisible) "Hide PIN" else "Show PIN"
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password"
                         )
                     }
                 },
-                visualTransformation = if (pinVisible) VisualTransformation.None
+                visualTransformation = if (passwordVisible) VisualTransformation.None
                 else PasswordVisualTransformation(),
                 modifier        = Modifier.fillMaxWidth(),
                 singleLine      = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
+
             OutlinedTextField(
-                value         = confirmPin,
-                onValueChange = {
-                    if (it.length <= 6) { confirmPin = it; viewModel.clearError() }
-                },
-                label                = { Text("Confirm PIN") },
+                value                = confirmPassword,
+                onValueChange        = { confirmPassword = it; viewModel.clearError() },
+                label                = { Text("Confirm password") },
                 leadingIcon          = { Icon(Icons.Default.Lock, null) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier             = Modifier.fillMaxWidth(),
                 singleLine           = true,
-                keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
+
             if (uiState.error != null) {
                 Text(
                     text  = uiState.error!!,
@@ -145,9 +138,12 @@ fun RegisterScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+
             Button(
-                onClick  = { viewModel.register(name, phone, pin, confirmPin) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                onClick  = { viewModel.register(name, email, password, confirmPassword) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
                 enabled  = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {

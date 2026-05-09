@@ -11,8 +11,8 @@ class ReviewRepository @Inject constructor(
     private val dao: ReviewDao
 ) {
     suspend fun submitReview(review: Review): Long = dao.insertReview(review)
-    fun getReviewsForUser(userId: Int): Flow<List<Review>> = dao.getReviewsForUser(userId)
-    suspend fun getAverageRating(userId: Int): Float = dao.getAverageRating(userId) ?: 0f
+    fun getReviewsForUser(userId: String): Flow<List<Review>> = dao.getReviewsForUser(userId)
+    suspend fun getAverageRating(userId: String): Float = dao.getAverageRating(userId) ?: 0f
     suspend fun hasReview(recordId: Int): Boolean = dao.hasReview(recordId) > 0
     suspend fun getReviewForRecord(recordId: Int): Review? = dao.getReviewForRecord(recordId)
 }

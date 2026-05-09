@@ -19,10 +19,10 @@ class SessionManager @Inject constructor(
         private const val KEY_USER_NAME = "user_name"
     }
 
-    fun saveSession(userId: Int, name: String) {
+    fun saveSession(userId: String, name: String) {
         prefs.edit().apply {
             putBoolean(KEY_IS_LOGGED_IN, true)
-            putInt(KEY_USER_ID, userId)
+            putString(KEY_USER_ID, userId)
             putString(KEY_USER_NAME, name)
             apply()
         }
@@ -30,7 +30,7 @@ class SessionManager @Inject constructor(
 
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
 
-    fun getUserId(): Int = prefs.getInt(KEY_USER_ID, -1)
+    fun getUserId(): String? = prefs.getString(KEY_USER_ID, null)
 
     fun getUserName(): String? = prefs.getString(KEY_USER_NAME, null)
 

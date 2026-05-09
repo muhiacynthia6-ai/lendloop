@@ -5,10 +5,10 @@ import androidx.room.Room
 import com.example.lendloop.data.db.*
 import com.example.lendloop.data.repository.AuthRepository
 import com.example.lendloop.data.repository.ElectronicsRepository
-import com.example.lendloop.data.repository.MpesaRepository
 import com.example.lendloop.data.repository.PaymentRepository
 import com.example.lendloop.data.repository.ReviewRepository
 import com.example.lendloop.data.repository.TrustScoreRepository
+import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,7 +53,7 @@ object DatabaseModule {
 
     @Provides @Singleton
     fun provideAuthRepository(userDao: UserDao): AuthRepository =
-        AuthRepository(userDao)
+        AuthRepository(userDao as FirebaseAuth)
 
     @Provides @Singleton
     fun provideTrustScoreRepository(dao: TrustScoreDao): TrustScoreRepository =
@@ -66,10 +66,6 @@ object DatabaseModule {
     @Provides @Singleton
     fun providePaymentRepository(dao: PaymentDao): PaymentRepository =
         PaymentRepository(dao)
-
-    @Provides @Singleton
-    fun provideMpesaRepository(): MpesaRepository =
-        MpesaRepository()
 
     @Provides @Singleton
     fun provideElectronicsRepository(dao: ElectronicsDao): ElectronicsRepository =

@@ -64,7 +64,7 @@ class ReviewViewModel @Inject constructor(
         }
 
         val reviewerId = sessionManager.getUserId()
-        if (reviewerId == -1) {
+        if (reviewerId == null) {
             _uiState.value = state.copy(error = "Not logged in")
             return
         }
@@ -75,7 +75,7 @@ class ReviewViewModel @Inject constructor(
                 Review(
                     recordId   = recordId,
                     reviewerId = reviewerId,
-                    revieweeId = revieweeId,
+                    revieweeId = revieweeId.toString(),
                     rating     = state.rating,
                     comment    = state.comment.ifBlank { null }
                 )

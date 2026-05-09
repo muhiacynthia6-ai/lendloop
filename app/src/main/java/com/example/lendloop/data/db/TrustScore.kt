@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "trust_scores")
 data class TrustScore(
     @PrimaryKey
-    val userId: Int,
+    val userId: String,
     val totalBorrowed: Int = 0,
     val totalReturned: Int = 0,
     val returnRate: Float = 100f,

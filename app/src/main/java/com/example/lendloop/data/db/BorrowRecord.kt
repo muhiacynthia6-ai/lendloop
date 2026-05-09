@@ -35,3 +35,4 @@ data class BorrowRecord(
 
 enum class Direction { LENT, BORROWED }
 enum class Status { ACTIVE, RETURNED }
+enum class UserRole { LENDER, BORROWER }

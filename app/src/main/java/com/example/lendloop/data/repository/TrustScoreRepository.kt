@@ -10,7 +10,7 @@ import javax.inject.Singleton
 class TrustScoreRepository @Inject constructor(
     private val dao: TrustScoreDao
 ) {
-    suspend fun getOrCreateTrustScore(userId: Int): TrustScore {
+    suspend fun getOrCreateTrustScore(userId: String): TrustScore {
         return dao.getTrustScore(userId) ?: run {
             val newScore = TrustScore(userId = userId)
             dao.insertOrUpdate(newScore)
@@ -18,24 +18,24 @@ class TrustScoreRepository @Inject constructor(
         }
     }
 
-    fun observeTrustScore(userId: Int): Flow<TrustScore?> =
+    fun observeTrustScore(userId: String): Flow<TrustScore?> =
         dao.observeTrustScore(userId)
 
-    suspend fun onItemBorrowed(userId: Int) {
+    suspend fun onItemBorrowed(userId: String) {
         getOrCreateTrustScore(userId)
         dao.incrementBorrowed(userId)
     }
 
-    suspend fun onItemReturned(userId: Int) {
+    suspend fun onItemReturned(userId: String) {
         getOrCreateTrustScore(userId)
         dao.incrementReturned(userId)
     }
 
-    suspend fun liftExpiredRestrictions(userId: Int) {
+    suspend fun liftExpiredRestrictions(userId: String) {
         dao.liftExpiredRestrictions(userId)
     }
 
-    suspend fun isRestricted(userId: Int): Boolean {
+    suspend fun isRestricted(userId: String): Boolean {
         val score = dao.getTrustScore(userId) ?: return false
         if (score.isRestricted && score.restrictedUntil != null) {
             if (score.restrictedUntil < System.currentTimeMillis()) {

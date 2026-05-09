@@ -5,10 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,17 +24,17 @@ import com.example.lendloop.models.AuthViewModel
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit,
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val uiState    by viewModel.uiState.collectAsState()
-    var phone      by remember { mutableStateOf("") }
-    var pin        by remember { mutableStateOf("") }
-    var pinVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        viewModel.resetState()
-    }
+    val uiState         by viewModel.uiState.collectAsState()
+    var email           by remember { mutableStateOf("") }
+    var password        by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) { viewModel.resetState() }
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             viewModel.resetState()
@@ -86,41 +83,50 @@ fun LoginScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+
         OutlinedTextField(
-            value           = phone,
-            onValueChange   = { phone = it; viewModel.clearError() },
-            label           = { Text("Phone number") },
-            leadingIcon     = { Icon(Icons.Default.Phone, null) },
+            value           = email,
+            onValueChange   = { email = it; viewModel.clearError() },
+            label           = { Text("Email address") },
+            leadingIcon     = { Icon(Icons.Default.Email, null) },
             modifier        = Modifier.fillMaxWidth(),
             singleLine      = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
+
         OutlinedTextField(
-            value         = pin,
-            onValueChange = {
-                if (it.length <= 6) { pin = it; viewModel.clearError() }
-            },
-            label        = { Text("PIN") },
-            leadingIcon  = { Icon(Icons.Default.Lock, null) },
-            trailingIcon = {
-                IconButton(onClick = { pinVisible = !pinVisible }) {
+            value         = password,
+            onValueChange = { password = it; viewModel.clearError() },
+            label         = { Text("Password") },
+            leadingIcon   = { Icon(Icons.Default.Lock, null) },
+            trailingIcon  = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        imageVector        = if (pinVisible) Icons.Default.VisibilityOff
+                        imageVector        = if (passwordVisible) Icons.Default.VisibilityOff
                         else Icons.Default.Visibility,
-                        contentDescription = if (pinVisible) "Hide PIN" else "Show PIN"
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
                     )
                 }
             },
-            visualTransformation = if (pinVisible) VisualTransformation.None
+            visualTransformation = if (passwordVisible) VisualTransformation.None
             else PasswordVisualTransformation(),
             modifier        = Modifier.fillMaxWidth(),
             singleLine      = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            TextButton(
+                onClick  = onNavigateToForgotPassword,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                Text("Forgot password?", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
         if (uiState.error != null) {
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text     = uiState.error!!,
                 color    = MaterialTheme.colorScheme.error,
@@ -129,10 +135,13 @@ fun LoginScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(
-            onClick  = { viewModel.login(phone, pin) },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            onClick  = { viewModel.login(email, password) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
             enabled  = !uiState.isLoading
         ) {
             if (uiState.isLoading) {

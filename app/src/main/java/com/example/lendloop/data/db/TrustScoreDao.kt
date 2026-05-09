@@ -10,10 +10,10 @@ interface TrustScoreDao {
     suspend fun insertOrUpdate(trustScore: TrustScore)
 
     @Query("SELECT * FROM trust_scores WHERE userId = :userId")
-    suspend fun getTrustScore(userId: Int): TrustScore?
+    suspend fun getTrustScore(userId: String): TrustScore?
 
     @Query("SELECT * FROM trust_scores WHERE userId = :userId")
-    fun observeTrustScore(userId: Int): Flow<TrustScore?>
+    fun observeTrustScore(userId: String): Flow<TrustScore?>
 
     @Query("""
         UPDATE trust_scores 
@@ -21,7 +21,7 @@ interface TrustScoreDao {
             lastUpdated = :now
         WHERE userId = :userId
     """)
-    suspend fun incrementBorrowed(userId: Int, now: Long = System.currentTimeMillis())
+    suspend fun incrementBorrowed(userId: String, now: Long = System.currentTimeMillis())
 
     @Query("""
         UPDATE trust_scores
@@ -37,7 +37,7 @@ interface TrustScoreDao {
         WHERE userId = :userId
     """)
     suspend fun incrementReturned(
-        userId: Int,
+        userId: String,
         restrictedUntil: Long = System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000),
         now: Long = System.currentTimeMillis()
     )
@@ -47,5 +47,5 @@ interface TrustScoreDao {
         SET isRestricted = 0, restrictedUntil = NULL
         WHERE userId = :userId AND restrictedUntil < :now
     """)
-    suspend fun liftExpiredRestrictions(userId: Int, now: Long = System.currentTimeMillis())
+    suspend fun liftExpiredRestrictions(userId: String, now: Long = System.currentTimeMillis())
 }

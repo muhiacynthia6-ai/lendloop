@@ -8,6 +8,7 @@ import com.example.lendloop.data.repository.PaymentRepository
 import com.example.lendloop.util.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -16,47 +17,41 @@ enum class DashboardRole { NONE, LENDER, BORROWER }
 
 data class MonthlyBar(val label: String, val lent: Int, val borrowed: Int)
 
-// ── Lender stats ──────────────────────────────────────────────────────────────
 data class LenderStats(
-    val totalLentOut: Double        = 0.0,
-    val activeLoansCount: Int       = 0,
-    val overdueCount: Int           = 0,
-    val overdueAmount: Double       = 0.0,
-    val totalRecovered: Double      = 0.0,
-    val mpesaReceived: Double       = 0.0,
-    val paypalReceived: Double      = 0.0,
-    val cashReceived: Double        = 0.0,
-    val monthlyBars: List<MonthlyBar> = emptyList(),
-    val recentLent: List<BorrowRecord> = emptyList(),
-    val topBorrowers: List<Pair<String, Double>> = emptyList()
+    val totalLentOut:     Double                    = 0.0,
+    val activeLoansCount: Int                       = 0,
+    val overdueCount:     Int                       = 0,
+    val overdueAmount:    Double                    = 0.0,
+    val totalRecovered:   Double                    = 0.0,
+    val cashReceived:     Double                    = 0.0,
+    val monthlyBars:      List<MonthlyBar>          = emptyList(),
+    val recentLent:       List<BorrowRecord>        = emptyList(),
+    val topBorrowers:     List<Pair<String, Double>> = emptyList()
 )
 
-// ── Borrower stats ────────────────────────────────────────────────────────────
 data class BorrowerStats(
-    val totalOwed: Double           = 0.0,
-    val activeBorrowsCount: Int     = 0,
-    val overdueCount: Int           = 0,
-    val nextDueRecord: BorrowRecord? = null,
-    val totalPaid: Double           = 0.0,
-    val mpesaPaid: Double           = 0.0,
-    val paypalPaid: Double          = 0.0,
-    val cashPaid: Double            = 0.0,
-    val monthlyBars: List<MonthlyBar> = emptyList(),
-    val recentBorrowed: List<BorrowRecord> = emptyList()
+    val totalOwed:          Double               = 0.0,
+    val activeBorrowsCount: Int                  = 0,
+    val overdueCount:       Int                  = 0,
+    val nextDueRecord:      BorrowRecord?        = null,
+    val totalPaid:          Double               = 0.0,
+    val cashPaid:           Double               = 0.0,
+    val monthlyBars:        List<MonthlyBar>     = emptyList(),
+    val recentBorrowed:     List<BorrowRecord>   = emptyList()
 )
 
 data class DashboardUiState(
-    val role: DashboardRole     = DashboardRole.NONE,
+    val role:     DashboardRole = DashboardRole.NONE,
     val userName: String        = "",
-    val lender: LenderStats     = LenderStats(),
+    val lender:   LenderStats   = LenderStats(),
     val borrower: BorrowerStats = BorrowerStats()
 )
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val borrowRepository: BorrowRepository,
+    private val borrowRepository:  BorrowRepository,
     private val paymentRepository: PaymentRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager:    SessionManager
 ) : ViewModel() {
 
     private val _role = MutableStateFlow(DashboardRole.NONE)
@@ -66,7 +61,7 @@ class DashboardViewModel @Inject constructor(
         paymentRepository.getAllConfirmedPayments(),
         _role
     ) { records, payments, role ->
-        val now  = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
         DashboardUiState(
             role     = role,
             userName = sessionManager.getUserName() ?: "there",
@@ -74,83 +69,77 @@ class DashboardViewModel @Inject constructor(
             borrower = buildBorrowerStats(records, payments, now)
         )
     }.stateIn(
-        scope          = viewModelScope,
-        started        = SharingStarted.WhileSubscribed(5000),
-        initialValue   = DashboardUiState(
-            userName = sessionManager.getUserName() ?: "there"
-        )
+        scope        = viewModelScope,
+        started      = SharingStarted.WhileSubscribed(5000),
+        initialValue = DashboardUiState(userName = sessionManager.getUserName() ?: "there")
     )
 
     fun selectRole(role: DashboardRole) { _role.value = role }
     fun clearRole()                      { _role.value = DashboardRole.NONE }
 
-    // ── Lender ───────────────────────────────────────────────────────────────
+    fun deleteRecord(record: BorrowRecord) {
+        viewModelScope.launch { borrowRepository.deleteRecord(record) }
+    }
+
+    // ── Lender stats ──────────────────────────────────────────────────────────
     private fun buildLenderStats(
-        records: List<BorrowRecord>,
+        records:  List<BorrowRecord>,
         payments: List<Payment>,
-        now: Long
+        now:      Long
     ): LenderStats {
         val lentRecords  = records.filter { it.direction == Direction.LENT }
         val activeLent   = lentRecords.filter { it.status == Status.ACTIVE }
         val overdue      = activeLent.filter { it.dueDate != null && it.dueDate < now }
-
         val lentIds      = lentRecords.map { it.id }.toSet()
         val lentPayments = payments.filter { it.recordId in lentIds }
 
-        // Top borrowers by amount owed
         val topBorrowers = activeLent
             .groupBy { it.personName }
-            .mapValues { (_, recs) -> recs.sumOf { it.amount ?: 0.0 } }
-            .entries.sortedByDescending { it.value }
-            .take(3)
+            .mapValues { (_, r) -> r.sumOf { it.amount ?: 0.0 } }
+            .entries.sortedByDescending { it.value }.take(3)
             .map { it.key to it.value }
 
         return LenderStats(
-            totalLentOut    = activeLent.sumOf { it.amount ?: 0.0 },
+            totalLentOut     = activeLent.sumOf { it.amount ?: 0.0 },
             activeLoansCount = activeLent.size,
-            overdueCount    = overdue.size,
-            overdueAmount   = overdue.sumOf { it.amount ?: 0.0 },
-            totalRecovered  = lentPayments.sumOf { it.amount },
-            mpesaReceived   = lentPayments.filter { it.method == PaymentMethod.MPESA }.sumOf { it.amount },
-            paypalReceived  = lentPayments.filter { it.method == PaymentMethod.PAYPAL }.sumOf { it.amount },
-            cashReceived    = lentPayments.filter { it.method == PaymentMethod.CASH }.sumOf { it.amount },
-            monthlyBars     = buildMonthlyBars(records),
-            recentLent      = lentRecords.sortedByDescending { it.lentAt }.take(5),
-            topBorrowers    = topBorrowers
+            overdueCount     = overdue.size,
+            overdueAmount    = overdue.sumOf { it.amount ?: 0.0 },
+            totalRecovered   = lentPayments.sumOf { it.amount },
+            cashReceived     = lentPayments.filter { it.method == PaymentMethod.CASH }.sumOf { it.amount },
+            monthlyBars      = buildMonthlyBars(records),
+            recentLent       = lentRecords.sortedByDescending { it.lentAt }.take(5),
+            topBorrowers     = topBorrowers
         )
     }
 
-    // ── Borrower ─────────────────────────────────────────────────────────────
+    // ── Borrower stats ────────────────────────────────────────────────────────
     private fun buildBorrowerStats(
-        records: List<BorrowRecord>,
+        records:  List<BorrowRecord>,
         payments: List<Payment>,
-        now: Long
+        now:      Long
     ): BorrowerStats {
-        val borrowedRecs   = records.filter { it.direction == Direction.BORROWED }
-        val activeBorrowed = borrowedRecs.filter { it.status == Status.ACTIVE }
+        val borrowed       = records.filter { it.direction == Direction.BORROWED }
+        val activeBorrowed = borrowed.filter { it.status == Status.ACTIVE }
         val overdue        = activeBorrowed.filter { it.dueDate != null && it.dueDate < now }
-
-        val nextDue = activeBorrowed
+        val nextDue        = activeBorrowed
             .filter { it.dueDate != null && it.dueDate > now }
             .minByOrNull { it.dueDate!! }
-
-        val borIds      = borrowedRecs.map { it.id }.toSet()
-        val borPayments = payments.filter { it.recordId in borIds }
+        val borIds         = borrowed.map { it.id }.toSet()
+        val borPayments    = payments.filter { it.recordId in borIds }
 
         return BorrowerStats(
-            totalOwed        = activeBorrowed.sumOf { it.amount ?: 0.0 },
+            totalOwed          = activeBorrowed.sumOf { it.amount ?: 0.0 },
             activeBorrowsCount = activeBorrowed.size,
-            overdueCount     = overdue.size,
-            nextDueRecord    = nextDue,
-            totalPaid        = borPayments.sumOf { it.amount },
-            mpesaPaid        = borPayments.filter { it.method == PaymentMethod.MPESA }.sumOf { it.amount },
-            paypalPaid       = borPayments.filter { it.method == PaymentMethod.PAYPAL }.sumOf { it.amount },
-            cashPaid         = borPayments.filter { it.method == PaymentMethod.CASH }.sumOf { it.amount },
-            monthlyBars      = buildMonthlyBars(records),
-            recentBorrowed   = borrowedRecs.sortedByDescending { it.lentAt }.take(5)
+            overdueCount       = overdue.size,
+            nextDueRecord      = nextDue,
+            totalPaid          = borPayments.sumOf { it.amount },
+            cashPaid           = borPayments.filter { it.method == PaymentMethod.CASH }.sumOf { it.amount },
+            monthlyBars        = buildMonthlyBars(records),
+            recentBorrowed     = borrowed.sortedByDescending { it.lentAt }.take(5)
         )
     }
 
+    // ── Monthly bar chart data ────────────────────────────────────────────────
     private fun buildMonthlyBars(records: List<BorrowRecord>): List<MonthlyBar> {
         val fmt = SimpleDateFormat("MMM", Locale.getDefault())
         val cal = Calendar.getInstance()

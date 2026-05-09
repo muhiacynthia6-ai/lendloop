@@ -1,21 +1,21 @@
 package com.example.lendloop.Screens
 
 import android.app.DatePickerDialog
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,7 +36,14 @@ import com.example.lendloop.util.createImageUri
 import com.example.lendloop.util.toFormattedDate
 import java.util.*
 
-private val editCategories = listOf("Money", "Electronics", "Books", "Clothes", "Tools", "Other")
+private val editCategories = listOf(
+    "Money",
+    "Electronics",
+    "Books",
+    "Clothes",
+    "Tools",
+    "Other"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,45 +52,92 @@ fun EditRecordScreen(
     navController: NavController,
     viewModel: EditRecordViewModel = hiltViewModel()
 ) {
+
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    var cameraUri       by remember { mutableStateOf<Uri?>(null) }
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
+
     var showPhotoDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showNotifySheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSaved) {
-        if (uiState.isSaved) onNavigateBack()
-    }
-    val cameraLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            cameraUri?.let { viewModel.onPhotoUriChange(it.toString()) }
+        if (uiState.isSaved) {
+            onNavigateBack()
         }
     }
-    val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { viewModel.onPhotoUriChange(it.toString()) }
+
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            onNavigateBack()
+        }
     }
-    val contactLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickContact()
-    ) { uri: Uri? ->
-        uri?.let {
-            queryContactInfo(context, it) { name, phone ->
-                viewModel.onPersonSelected(name, phone, it.toString())
+
+    // CAMERA
+    val cameraLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.TakePicture()
+        ) { success ->
+
+            if (success) {
+                cameraUri?.let {
+                    viewModel.onPhotoUriChange(it.toString())
+                }
             }
         }
-    }
+
+    // GALLERY
+    val galleryLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri ->
+
+            uri?.let {
+                viewModel.onPhotoUriChange(it.toString())
+            }
+        }
+
+    // CONTACTS
+    val contactLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.PickContact()
+        ) { uri ->
+
+            uri?.let {
+                queryContactInfo(context, uri) { name, phone ->
+                    viewModel.onPersonSelected(
+                        name,
+                        phone,
+                        uri.toString()
+                    )
+                }
+            }
+        }
+
+    // PHOTO DIALOG
     if (showPhotoDialog) {
+
         AlertDialog(
-            onDismissRequest = { showPhotoDialog = false },
-            title = { Text("Change Photo") },
+            onDismissRequest = {
+                showPhotoDialog = false
+            },
+
+            title = {
+                Text("Change Photo")
+            },
+
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
                     OutlinedButton(
                         onClick = {
+
                             showPhotoDialog = false
+
                             createImageUri(context)?.let { uri ->
                                 cameraUri = uri
                                 cameraLauncher.launch(uri)
@@ -91,367 +145,845 @@ fun EditRecordScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Take a photo")
+
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = null
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text("Take Photo")
                     }
+
                     OutlinedButton(
                         onClick = {
+
                             showPhotoDialog = false
                             galleryLauncher.launch("image/*")
+
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.Image, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Choose from gallery")
+
+                        Icon(
+                            Icons.Default.Image,
+                            contentDescription = null
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text("Choose from Gallery")
                     }
                 }
             },
+
             confirmButton = {},
+
             dismissButton = {
-                TextButton(onClick = { showPhotoDialog = false }) {
+
+                TextButton(
+                    onClick = {
+                        showPhotoDialog = false
+                    }
+                ) {
                     Text("Cancel")
                 }
             }
         )
     }
 
+    // DELETE DIALOG
+    if (showDeleteDialog) {
+
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+            },
+
+            title = {
+                Text("Delete Record?")
+            },
+
+            text = {
+                Text(
+                    "\"${uiState.itemName}\" will be permanently deleted."
+                )
+            },
+
+            confirmButton = {
+
+                TextButton(
+                    onClick = {
+
+                        showDeleteDialog = false
+                        viewModel.deleteRecord()
+
+                    }
+                ) {
+
+                    Text(
+                        "Delete",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+
+            dismissButton = {
+
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // NOTIFY SHEET
+    if (showNotifySheet) {
+
+        val isLender = uiState.direction == Direction.LENT
+
+        val notifyMessage = if (isLender) {
+
+            "Hi ${uiState.personName}! I've updated the record for " +
+                    "\"${uiState.itemName}\". Please check your LendLoop 📋"
+
+        } else {
+
+            NotificationHelper.buildBorrowerThankYouMessage(
+                borrowerName = uiState.personName,
+                itemName = uiState.itemName,
+                amount = uiState.amount.toDoubleOrNull()
+            )
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                showNotifySheet = false
+            }
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Text(
+                    text = if (isLender)
+                        "Notify Borrower 📋"
+                    else
+                        "Thank the Lender 💝",
+
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    Text(
+                        text = notifyMessage,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
+                Button(
+                    onClick = {
+
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+
+                            type = "text/plain"
+
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                notifyMessage
+                            )
+                        }
+
+                        context.startActivity(intent)
+
+                        showNotifySheet = false
+                    },
+
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = null
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text("Send")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+
     Scaffold(
+
         topBar = {
+
             TopAppBar(
-                title = { Text("Edit Record", fontWeight = FontWeight.Bold) },
+
+                title = {
+                    Text(
+                        "Edit Record",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+
+                    IconButton(
+                        onClick = onNavigateBack
+                    ) {
+
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 },
+
                 actions = {
-                    TextButton(
-                        onClick  = viewModel::saveChanges,
-                        enabled  = !uiState.isLoading
+
+                    IconButton(
+                        onClick = {
+                            showNotifySheet = true
+                        }
                     ) {
+
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "Notify"
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            showDeleteDialog = true
+                        }
+                    ) {
+
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    TextButton(
+                        onClick = viewModel::saveChanges,
+                        enabled = !uiState.isLoading
+                    ) {
+
                         Text(
-                            text       = "Save",
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary
+                            "Save",
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             )
         }
-    ) { padding ->
-        Column(
+
+    ) { paddingValues ->
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Spacer(Modifier.height(4.dp))
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
 
-            if (uiState.isLoading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
-            Text("I...", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = uiState.direction == Direction.LENT,
-                    onClick  = { viewModel.onDirectionChange(Direction.LENT) },
-                    label    = { Text("Lent something out") }
-                )
-                FilterChip(
-                    selected = uiState.direction == Direction.BORROWED,
-                    onClick  = { viewModel.onDirectionChange(Direction.BORROWED) },
-                    label    = { Text("Borrowed something") }
-                )
-            }
-            OutlinedTextField(
-                value          = uiState.itemName,
-                onValueChange  = viewModel::onItemNameChange,
-                label          = { Text("What is it?") },
-                placeholder    = { Text("e.g. Ksh 500, Blue hoodie, MacBook") },
-                modifier       = Modifier.fillMaxWidth(),
-                singleLine     = true,
-                isError        = uiState.error != null && uiState.itemName.isBlank(),
-                supportingText = {
-                    if (uiState.error != null && uiState.itemName.isBlank())
-                        Text("Required", color = MaterialTheme.colorScheme.error)
-                }
-            )
-            Text("Person", style = MaterialTheme.typography.labelLarge)
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value         = uiState.personName,
-                    onValueChange = viewModel::onPersonNameChange,
-                    label         = { Text("Their name") },
-                    modifier      = Modifier.weight(1f),
-                    singleLine    = true,
-                    isError       = uiState.error != null && uiState.personName.isBlank()
-                )
-                IconButton(onClick = { contactLauncher.launch(null) }) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Pick from contacts",
-                        tint = MaterialTheme.colorScheme.primary
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+
+            item {
+
+                if (uiState.isLoading) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
-            if (uiState.personPhone.isNotBlank()) {
+
+            // DIRECTION
+            item {
+
                 Text(
-                    text  = "📱 ${uiState.personPhone}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "I...",
+                    style = MaterialTheme.typography.labelLarge
                 )
-            }
-            Text("Category", style = MaterialTheme.typography.labelLarge)
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                editCategories.forEach { cat ->
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
                     FilterChip(
-                        selected = uiState.category == cat,
-                        onClick  = { viewModel.onCategoryChange(cat) },
-                        label    = { Text(cat) }
+                        selected = uiState.direction == Direction.LENT,
+
+                        onClick = {
+                            viewModel.onDirectionChange(Direction.LENT)
+                        },
+
+                        label = {
+                            Text("Lent Something")
+                        }
+                    )
+
+                    FilterChip(
+                        selected = uiState.direction == Direction.BORROWED,
+
+                        onClick = {
+                            viewModel.onDirectionChange(Direction.BORROWED)
+                        },
+
+                        label = {
+                            Text("Borrowed Something")
+                        }
                     )
                 }
             }
-            if (uiState.category == "Electronics") {
-                Card(
+
+            // ITEM NAME
+            item {
+
+                OutlinedTextField(
+                    value = uiState.itemName,
+
+                    onValueChange = viewModel::onItemNameChange,
+
                     modifier = Modifier.fillMaxWidth(),
-                    colors   = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
+
+                    label = {
+                        Text("What is it?")
+                    },
+
+                    placeholder = {
+                        Text("e.g. Ksh 500, Laptop")
+                    },
+
+                    singleLine = true
+                )
+            }
+
+            // PERSON
+            item {
+
+                Text(
+                    "Person",
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier            = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text       = "📱 Electronics Details",
-                            style      = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        OutlinedTextField(
-                            value         = uiState.brand,
-                            onValueChange = viewModel::onBrandChange,
-                            label         = { Text("Brand") },
-                            placeholder   = { Text("e.g. Apple, Samsung, HP") },
-                            modifier      = Modifier.fillMaxWidth(),
-                            singleLine    = true
-                        )
-                        OutlinedTextField(
-                            value         = uiState.model,
-                            onValueChange = viewModel::onModelChange,
-                            label         = { Text("Model") },
-                            placeholder   = { Text("e.g. iPhone 14, Galaxy S23") },
-                            modifier      = Modifier.fillMaxWidth(),
-                            singleLine    = true
-                        )
-                        OutlinedTextField(
-                            value         = uiState.serialNumber,
-                            onValueChange = viewModel::onSerialNumberChange,
-                            label         = { Text("Serial Number (optional)") },
-                            placeholder   = { Text("e.g. C02XG0XLJGH5") },
-                            modifier      = Modifier.fillMaxWidth(),
-                            singleLine    = true
-                        )
-                        Text(
-                            text  = "Condition",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            ItemCondition.entries.forEach { condition ->
-                                FilterChip(
-                                    selected = uiState.condition == condition,
-                                    onClick  = { viewModel.onConditionChange(condition) },
-                                    label    = {
-                                        Text(
-                                            when (condition) {
-                                                ItemCondition.NEW  -> "New"
-                                                ItemCondition.GOOD -> "Good"
-                                                ItemCondition.FAIR -> "Fair"
-                                                ItemCondition.POOR -> "Poor"
-                                            }
-                                        )
-                                    }
-                                )
-                            }
+
+                    OutlinedTextField(
+                        value = uiState.personName,
+
+                        onValueChange = viewModel::onPersonNameChange,
+
+                        modifier = Modifier.weight(1f),
+
+                        label = {
+                            Text("Their Name")
+                        },
+
+                        singleLine = true
+                    )
+
+                    IconButton(
+                        onClick = {
+                            contactLauncher.launch(null)
                         }
-                        OutlinedTextField(
-                            value           = uiState.estimatedValue,
-                            onValueChange   = viewModel::onEstimatedValueChange,
-                            label           = { Text("Estimated Value (Ksh) — optional") },
-                            modifier        = Modifier.fillMaxWidth(),
-                            singleLine      = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            prefix          = { Text("Ksh ") }
+                    ) {
+
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Pick Contact"
+                        )
+                    }
+                }
+
+                if (uiState.personPhone.isNotBlank()) {
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        "📱 ${uiState.personPhone}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            // CATEGORY
+            item {
+
+                Text(
+                    "Category",
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    editCategories.forEach { category ->
+
+                        FilterChip(
+                            selected = uiState.category == category,
+
+                            onClick = {
+                                viewModel.onCategoryChange(category)
+                            },
+
+                            label = {
+                                Text(category)
+                            }
                         )
                     }
                 }
             }
-            OutlinedTextField(
-                value           = uiState.amount,
-                onValueChange   = viewModel::onAmountChange,
-                label           = { Text("Amount (Ksh) — optional") },
-                modifier        = Modifier.fillMaxWidth(),
-                singleLine      = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                prefix          = { Text("Ksh ") }
-            )
-            Text("Photo", style = MaterialTheme.typography.labelLarge)
-            if (uiState.photoUri != null) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    AsyncImage(
-                        model              = uiState.photoUri,
-                        contentDescription = "Item photo",
-                        contentScale       = ContentScale.Crop,
-                        modifier           = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { showPhotoDialog = true }
-                    )
-                    IconButton(
-                        onClick  = { viewModel.onPhotoUriChange(null) },
-                        modifier = Modifier.align(Alignment.TopEnd)
+
+            // ELECTRONICS
+            if (uiState.category == "Electronics") {
+
+                item {
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
-                            shape = RoundedCornerShape(8.dp)
+
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+
                             Text(
-                                "Remove",
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(4.dp),
-                                style = MaterialTheme.typography.labelSmall
+                                "Electronics Details",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            OutlinedTextField(
+                                value = uiState.brand,
+                                onValueChange = viewModel::onBrandChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Brand") }
+                            )
+
+                            OutlinedTextField(
+                                value = uiState.model,
+                                onValueChange = viewModel::onModelChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Model") }
+                            )
+
+                            OutlinedTextField(
+                                value = uiState.serialNumber,
+                                onValueChange = viewModel::onSerialNumberChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Serial Number") }
+                            )
+
+                            Text(
+                                "Condition",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+
+                                ItemCondition.entries.forEach { condition ->
+
+                                    FilterChip(
+                                        selected = uiState.condition == condition,
+
+                                        onClick = {
+                                            viewModel.onConditionChange(condition)
+                                        },
+
+                                        label = {
+                                            Text(condition.name)
+                                        }
+                                    )
+                                }
+                            }
+
+                            OutlinedTextField(
+                                value = uiState.estimatedValue,
+
+                                onValueChange = viewModel::onEstimatedValueChange,
+
+                                modifier = Modifier.fillMaxWidth(),
+
+                                label = {
+                                    Text("Estimated Value")
+                                },
+
+                                prefix = {
+                                    Text("Ksh ")
+                                },
+
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number
+                                )
                             )
                         }
                     }
                 }
-            } else {
-                OutlinedButton(
-                    onClick  = { showPhotoDialog = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Add a photo")
-                }
             }
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                Text("Set a due date", style = MaterialTheme.typography.labelLarge)
-                Switch(
-                    checked         = uiState.hasDueDate,
-                    onCheckedChange = viewModel::onDueDateToggle
-                )
-            }
-            if (uiState.hasDueDate && uiState.dueDate != null) {
-                OutlinedButton(
-                    onClick  = {
-                        val cal = Calendar.getInstance().apply {
-                            timeInMillis = uiState.dueDate!!
-                        }
-                        DatePickerDialog(
-                            context,
-                            { _, year, month, day ->
-                                viewModel.onDueDateChange(
-                                    Calendar.getInstance().apply {
-                                        set(year, month, day, 0, 0, 0)
-                                    }.timeInMillis
-                                )
-                            },
-                            cal.get(Calendar.YEAR),
-                            cal.get(Calendar.MONTH),
-                            cal.get(Calendar.DAY_OF_MONTH)
-                        ).show()
+
+            // AMOUNT
+            item {
+
+                OutlinedTextField(
+                    value = uiState.amount,
+
+                    onValueChange = viewModel::onAmountChange,
+
+                    modifier = Modifier.fillMaxWidth(),
+
+                    label = {
+                        Text("Amount")
                     },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Due: ${uiState.dueDate!!.toFormattedDate()}")
-                }
-            }
-            OutlinedTextField(
-                value         = uiState.note,
-                onValueChange = viewModel::onNoteChange,
-                label         = { Text("Note — optional") },
-                placeholder   = { Text("Any extra details...") },
-                modifier      = Modifier.fillMaxWidth(),
-                minLines      = 2
-            )
-            if (uiState.error != null) {
-                Text(
-                    text  = "⚠️ ${uiState.error}",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+
+                    prefix = {
+                        Text("Ksh ")
+                    },
+
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number
+                    )
                 )
             }
-            Button(
-                onClick  = viewModel::saveChanges,
-                enabled  = !uiState.isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(20.dp),
-                        color       = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
+
+            // PHOTO
+            item {
+
+                Text(
+                    "Photo",
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (uiState.photoUri != null) {
+
+                    Box {
+
+                        AsyncImage(
+                            model = uiState.photoUri,
+                            contentDescription = null,
+
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    showPhotoDialog = true
+                                },
+
+                            contentScale = ContentScale.Crop
+                        )
+
+                        IconButton(
+                            onClick = {
+                                viewModel.onPhotoUriChange(null)
+                            },
+
+                            modifier = Modifier.align(Alignment.TopEnd)
+                        ) {
+
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Remove Photo",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+
                 } else {
+
+                    OutlinedButton(
+                        onClick = {
+                            showPhotoDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = null
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text("Add Photo")
+                    }
+                }
+            }
+
+            // DUE DATE
+            item {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+
+                    horizontalArrangement = Arrangement.SpaceBetween,
+
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text("Set Due Date")
+
+                    Switch(
+                        checked = uiState.hasDueDate,
+
+                        onCheckedChange = viewModel::onDueDateToggle
+                    )
+                }
+
+                if (uiState.hasDueDate && uiState.dueDate != null) {
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+
+                            val calendar = Calendar.getInstance().apply {
+                                timeInMillis = uiState.dueDate!!
+                            }
+
+                            DatePickerDialog(
+                                context,
+
+                                { _, year, month, day ->
+
+                                    val millis =
+                                        Calendar.getInstance().apply {
+
+                                            set(
+                                                year,
+                                                month,
+                                                day,
+                                                0,
+                                                0,
+                                                0
+                                            )
+
+                                        }.timeInMillis
+
+                                    viewModel.onDueDateChange(millis)
+
+                                },
+
+                                calendar.get(Calendar.YEAR),
+                                calendar.get(Calendar.MONTH),
+                                calendar.get(Calendar.DAY_OF_MONTH)
+
+                            ).show()
+                        },
+
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+
+                        Text(
+                            "Due: ${uiState.dueDate!!.toFormattedDate()}"
+                        )
+                    }
+                }
+            }
+
+            // NOTE
+            item {
+
+                OutlinedTextField(
+                    value = uiState.note,
+
+                    onValueChange = viewModel::onNoteChange,
+
+                    modifier = Modifier.fillMaxWidth(),
+
+                    label = {
+                        Text("Notes")
+                    },
+
+                    minLines = 3
+                )
+            }
+
+            // ERROR
+            if (uiState.error != null) {
+
+                item {
+
                     Text(
-                        text  = "Save Changes",
-                        style = MaterialTheme.typography.titleSmall
+                        "⚠️ ${uiState.error}",
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            // SAVE BUTTON
+            item {
+
+                Button(
+                    onClick = viewModel::saveChanges,
+
+                    enabled = !uiState.isLoading,
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                ) {
+
+                    if (uiState.isLoading) {
+
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+
+                    } else {
+
+                        Text("Save Changes")
+                    }
+                }
+            }
+
+            // DELETE BUTTON
+            item {
+
+                OutlinedButton(
+                    onClick = {
+                        showDeleteDialog = true
+                    },
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text("Delete Record")
+                }
+            }
         }
     }
 }
 
+// THANK YOU MESSAGE
+object NotificationHelper {
+
+    fun buildBorrowerThankYouMessage(
+        borrowerName: String,
+        itemName: String,
+        amount: Double?
+    ): String {
+
+        return if (amount != null) {
+
+            "Hi $borrowerName 😊 Thank you for returning/reminding me about Ksh ${
+                amount.toInt()
+            } for \"$itemName\" 🙌"
+
+        } else {
+
+            "Hi $borrowerName 😊 Thank you for returning \"$itemName\" 🙌"
+        }
+    }
+}
+
+// CONTACT PICKER
 private fun queryContactInfo(
-    context: android.content.Context,
+    context: Context,
     uri: Uri,
     onResult: (String, String) -> Unit
 ) {
-    context.contentResolver.query(uri, null, null, null, null)?.use { c ->
-        if (c.moveToFirst()) {
-            val nameCol = c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
-            val idCol = c.getColumnIndex(ContactsContract.Contacts._ID)
-            
-            val name = if (nameCol >= 0) c.getString(nameCol) ?: "" else ""
-            val contactId = if (idCol >= 0) c.getString(idCol) ?: "" else ""
-            
+
+    context.contentResolver.query(
+        uri,
+        null,
+        null,
+        null,
+        null
+    )?.use { cursor ->
+
+        if (cursor.moveToFirst()) {
+
+            val name =
+                cursor.getString(
+                    cursor.getColumnIndex(
+                        ContactsContract.Contacts.DISPLAY_NAME
+                    )
+                ) ?: ""
+
+            val id =
+                cursor.getString(
+                    cursor.getColumnIndex(
+                        ContactsContract.Contacts._ID
+                    )
+                ) ?: ""
+
             var phone = ""
-            if (contactId.isNotEmpty()) {
+
+            if (id.isNotEmpty()) {
+
                 context.contentResolver.query(
                     ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                     null,
                     "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                    arrayOf(contactId),
+                    arrayOf(id),
                     null
-                )?.use { pc ->
-                    if (pc.moveToFirst()) {
-                        val phoneCol = pc.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                        phone = if (phoneCol >= 0) pc.getString(phoneCol) ?: "" else ""
+
+                )?.use { phoneCursor ->
+
+                    if (phoneCursor.moveToFirst()) {
+
+                        phone =
+                            phoneCursor.getString(
+                                phoneCursor.getColumnIndex(
+                                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                                )
+                            ) ?: ""
                     }
                 }
             }
+
             onResult(name, phone)
         }
     }

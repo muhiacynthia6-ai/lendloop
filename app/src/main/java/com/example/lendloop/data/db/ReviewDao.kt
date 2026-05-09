@@ -10,10 +10,10 @@ interface ReviewDao {
     suspend fun insertReview(review: Review): Long
 
     @Query("SELECT * FROM reviews WHERE revieweeId = :userId ORDER BY createdAt DESC")
-    fun getReviewsForUser(userId: Int): Flow<List<Review>>
+    fun getReviewsForUser(userId: String): Flow<List<Review>>
 
     @Query("SELECT AVG(rating) FROM reviews WHERE revieweeId = :userId")
-    suspend fun getAverageRating(userId: Int): Float?
+    suspend fun getAverageRating(userId: String): Float?
 
     @Query("SELECT * FROM reviews WHERE recordId = :recordId LIMIT 1")
     suspend fun getReviewForRecord(recordId: Int): Review?

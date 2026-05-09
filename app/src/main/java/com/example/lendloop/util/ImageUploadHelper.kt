@@ -33,7 +33,7 @@ fun uploadImageToServer(
                 .build()
 
             val request = Request.Builder()
-                .url("https://yourapi.com/upload") // 🔁 replace with your real endpoint
+                .url("https://yourapi.com/upload")
                 .post(multipart)
                 .build()
 

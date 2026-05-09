@@ -19,8 +19,8 @@ data class Review(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val recordId: Int,
-    val reviewerId: Int,
-    val revieweeId: Int,
+    val reviewerId: String,
+    val revieweeId: String,
     val rating: Int,
     val comment: String? = null,
     val createdAt: Long = System.currentTimeMillis()

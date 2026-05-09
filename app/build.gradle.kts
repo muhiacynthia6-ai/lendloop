@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.firebase.auth.ktx)
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.room.runtime)

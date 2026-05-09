@@ -1,26 +1,45 @@
 package com.example.lendloop.navigation
 
+import android.os.Bundle
 import androidx.compose.runtime.Composable
-import androidx.navigation.*
-import androidx.navigation.compose.*
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.lendloop.Screens.*
+import com.example.lendloop.data.db.UserRole
 import com.example.lendloop.util.SessionManager
+
+val DoubleType: NavType<Double> = object : NavType<Double>(false) {
+    override fun get(bundle: Bundle, key: String): Double = bundle.getDouble(key)
+    override fun parseValue(value: String): Double = value.toDouble()
+    override fun put(bundle: Bundle, key: String, value: Double) = bundle.putDouble(key, value)
+}
 
 @Composable
 fun LendLoopNavGraph(
     sessionManager: SessionManager,
     navController: NavHostController = rememberNavController()
 ) {
-    // ✅ After login → Dashboard (role selector) first, not Home
-    val startDestination =
-        if (sessionManager.isLoggedIn()) Routes.DASHBOARD else Routes.WELCOME
 
-    NavHost(navController = navController, startDestination = startDestination) {
+    val startDestination =
+        if (sessionManager.isLoggedIn()) {
+            Routes.DASHBOARD
+        } else {
+            Routes.WELCOME
+        }
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
 
         composable(Routes.WELCOME) {
             WelcomeScreen(
                 onRegister = { navController.navigate(Routes.REGISTER) },
-                onLogin    = { navController.navigate(Routes.LOGIN) }
+                onLogin = { navController.navigate(Routes.LOGIN) }
             )
         }
 
@@ -32,7 +51,7 @@ fun LendLoopNavGraph(
                     }
                 },
                 onRegisterSuccess = {
-                    navController.navigate(Routes.DASHBOARD) {   // ✅ → Dashboard
+                    navController.navigate(Routes.DASHBOARD) {
                         popUpTo(Routes.WELCOME) { inclusive = true }
                     }
                 },
@@ -42,24 +61,26 @@ fun LendLoopNavGraph(
 
         composable(Routes.LOGIN) {
             LoginScreen(
-                onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
-                onLoginSuccess = {
-                    navController.navigate(Routes.DASHBOARD) {   // ✅ → Dashboard
-                        popUpTo(Routes.WELCOME) { inclusive = true }
+                onNavigateToRegister      = { navController.navigate(Routes.REGISTER) },
+                onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
+                onLoginSuccess            = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
                 navController = navController
             )
         }
 
-        // ✅ Dashboard is now the landing screen after login
+        composable(Routes.FORGOT_PASSWORD) {
+            ForgotPasswordScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Routes.DASHBOARD) {
             DashboardScreen(
-                onNavigateToHome = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.DASHBOARD) { inclusive = false }
-                    }
-                },
+                onNavigateToHome = { navController.navigate(Routes.HOME) },
                 onLogout = {
                     navController.navigate(Routes.WELCOME) {
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
@@ -71,16 +92,24 @@ fun LendLoopNavGraph(
 
         composable(Routes.HOME) {
             HomeScreen(
-                onAddRecord    = { navController.navigate(Routes.ADD_RECORD) },
-                onHistory      = { navController.navigate(Routes.HISTORY) },
-                onProfile      = { navController.navigate(Routes.PROFILE) },
-                onDashboard    = { navController.navigate(Routes.DASHBOARD) },
-                onRecordClick  = { id -> navController.navigate(Routes.personRoute(id)) },
+                onAddRecord = { navController.navigate(Routes.ADD_RECORD) },
+                onHistory = { navController.navigate(Routes.HISTORY) },
+                onProfile = { navController.navigate(Routes.PROFILE) },
+                onDashboard = { navController.navigate(Routes.DASHBOARD) },
+                onRecordClick = { personId ->
+                    navController.navigate(Routes.personRoute(personId))
+                },
                 onReviewRecord = { recordId, revieweeId ->
                     navController.navigate(Routes.reviewRoute(recordId, revieweeId))
                 },
                 onPayRecord = { recordId, amount, personName ->
-                    navController.navigate(Routes.paymentRoute(recordId, amount, personName))
+                    val userRole = getCurrentUserRole(navController)
+                    navController.navigate(
+                        Routes.paymentRoute(recordId, amount, personName, userRole)
+                    )
+                },
+                onEditRecord = { recordId ->
+                    navController.navigate(Routes.editRecordRoute(recordId))
                 },
                 onLogout = {
                     navController.navigate(Routes.WELCOME) {
@@ -94,48 +123,50 @@ fun LendLoopNavGraph(
         composable(Routes.ADD_RECORD) {
             AddRecordScreen(
                 onNavigateBack = { navController.popBackStack() },
-                navController  = navController
+                navController = navController
             )
         }
 
         composable(Routes.HISTORY) {
             HistoryScreen(
                 onNavigateBack = { navController.popBackStack() },
-                navController  = navController
+                navController = navController
             )
         }
 
         composable(Routes.PROFILE) {
             ProfileScreen(
-                onNavigateBack = { navController.popBackStack() },
-                navController  = navController
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
         composable(
-            route     = Routes.PERSON,
+            route = Routes.PERSON,
             arguments = listOf(navArgument("personId") { type = NavType.IntType })
         ) {
             PersonScreen(
                 onNavigateBack = { navController.popBackStack() },
-                navController  = navController
+                onEditRecord = { recordId ->
+                    navController.navigate(Routes.editRecordRoute(recordId))
+                },
+                navController = navController
             )
         }
 
         composable(
-            route     = Routes.EDIT_RECORD,
+            route = Routes.EDIT_RECORD,
             arguments = listOf(navArgument("recordId") { type = NavType.IntType })
         ) {
             EditRecordScreen(
                 onNavigateBack = { navController.popBackStack() },
-                navController  = navController
+                navController = navController
             )
         }
 
         composable(
             route = Routes.REVIEW,
             arguments = listOf(
-                navArgument("recordId")   { type = NavType.IntType },
+                navArgument("recordId") { type = NavType.IntType },
                 navArgument("revieweeId") { type = NavType.IntType }
             )
         ) {
@@ -153,20 +184,37 @@ fun LendLoopNavGraph(
         composable(
             route = Routes.PAYMENT,
             arguments = listOf(
-                navArgument("recordId")   { type = NavType.IntType },
-                navArgument("amount")     { type = NavType.StringType },
-                navArgument("personName") { type = NavType.StringType }
+                navArgument("recordId") { type = NavType.IntType },
+                navArgument("amount") { type = DoubleType },
+                navArgument("personName") { type = NavType.StringType },
+                navArgument("userRole") {
+                    type = NavType.StringType
+                    defaultValue = UserRole.BORROWER.name
+                }
             )
-        ) {
+        ) { backStackEntry ->
+            val userRole = UserRole.valueOf(
+                backStackEntry.arguments?.getString("userRole") ?: UserRole.BORROWER.name
+            )
+
             PaymentScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onPaymentDone  = {
+                onPaymentDone = {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
                 },
-                navController = navController
+                navController = navController,
+                userRole = userRole
             )
         }
+    }
+}
+
+private fun getCurrentUserRole(navController: NavHostController): UserRole {
+    val currentRoute = navController.currentBackStackEntry?.destination?.route?.lowercase()
+    return when {
+        currentRoute?.contains("lender") == true -> UserRole.LENDER
+        else -> UserRole.BORROWER
     }
 }

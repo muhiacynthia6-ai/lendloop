@@ -36,7 +36,7 @@ class ProfileViewModel @Inject constructor(
 
     private fun loadProfile() {
         val userId = sessionManager.getUserId()
-        if (userId == -1) return
+        if (userId == null) return
 
         val userName = sessionManager.getUserName() ?: "User"
 

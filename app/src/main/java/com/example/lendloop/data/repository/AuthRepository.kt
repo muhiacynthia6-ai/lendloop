@@ -1,31 +1,95 @@
 package com.example.lendloop.data.repository
 
-import com.example.lendloop.data.db.User
-import com.example.lendloop.data.db.UserDao
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.UserProfileChangeRequest
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class AuthUser(
+    val id: String,
+    val name: String,
+    val email: String
+)
+
 @Singleton
 class AuthRepository @Inject constructor(
-    private val userDao: UserDao
+    private val firebaseAuth: FirebaseAuth
 ) {
-    suspend fun register(name: String, phone: String, pin: String): Result<User> {
-        val exists = userDao.phoneExists(phone)
-        if (exists > 0) {
-            return Result.failure(Exception("Phone number already registered"))
+
+    suspend fun register(name: String, email: String, password: String): Result<AuthUser> {
+        return try {
+            val result = firebaseAuth
+                .createUserWithEmailAndPassword(email, password)
+                .await()
+
+            val profileUpdate = UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .build()
+            result.user?.updateProfile(profileUpdate)?.await()
+
+            Result.success(
+                AuthUser(
+                    id    = result.user?.uid         ?: "",
+                    name  = result.user?.displayName ?: name,
+                    email = result.user?.email       ?: email
+                )
+            )
+        } catch (e: FirebaseAuthWeakPasswordException) {
+            Result.failure(Exception("Password is too weak"))
+        } catch (e: FirebaseAuthUserCollisionException) {
+            Result.failure(Exception("An account with this email already exists"))
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(Exception("Invalid email address"))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Registration failed"))
         }
-        val user = User(name = name, phone = phone, pin = pin)
-        val id = userDao.insertUser(user)
-        return Result.success(user.copy(id = id.toInt()))
     }
 
-    suspend fun login(phone: String, pin: String): Result<User> {
-        val user = userDao.login(phone, pin)
-            ?: return Result.failure(Exception("Incorrect phone number or PIN"))
-        return Result.success(user)
+    suspend fun login(email: String, password: String): Result<AuthUser> {
+        return try {
+            val result = firebaseAuth
+                .signInWithEmailAndPassword(email, password)
+                .await()
+
+            Result.success(
+                AuthUser(
+                    id    = result.user?.uid         ?: "",
+                    name  = result.user?.displayName ?: "",
+                    email = result.user?.email       ?: email
+                )
+            )
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(Exception("Incorrect email or password"))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Login failed"))
+        }
     }
 
-    suspend fun phoneExists(phone: String): Boolean {
-        return userDao.phoneExists(phone) > 0
+    suspend fun sendPasswordReset(email: String): Result<Unit> {
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(Exception("No account found with this email"))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Failed to send reset email"))
+        }
+    }
+
+    fun signOut() {
+        firebaseAuth.signOut()
+    }
+
+    fun getCurrentUser(): AuthUser? {
+        val user = firebaseAuth.currentUser ?: return null
+        return AuthUser(
+            id    = user.uid,
+            name  = user.displayName ?: "",
+            email = user.email       ?: ""
+        )
     }
 }

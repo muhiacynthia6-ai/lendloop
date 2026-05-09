@@ -26,7 +26,7 @@ class BorrowRepository @Inject constructor(
         val id = dao.insertRecord(record)
         if (record.direction == Direction.BORROWED) {
             val userId = sessionManager.getUserId()
-            if (userId != -1) trustScoreRepository.onItemBorrowed(userId)
+            if (userId != null) trustScoreRepository.onItemBorrowed(userId)
         }
         return id
     }
@@ -34,7 +34,7 @@ class BorrowRepository @Inject constructor(
     suspend fun deleteRecord(record: BorrowRecord) = dao.deleteRecord(record)
     fun getActiveRecords(): Flow<List<BorrowRecord>>  = dao.getActiveRecords()
     fun getReturnedRecords(): Flow<List<BorrowRecord>> = dao.getReturnedRecords()
-    fun getAllRecords(): Flow<List<BorrowRecord>>      = dao.getAllRecords()   // ✅ NEW
+    fun getAllRecords(): Flow<List<BorrowRecord>>      = dao.getAllRecords()
     fun getRecordsByPerson(personId: Int): Flow<List<BorrowRecord>> =
         dao.getRecordsByPerson(personId)
     suspend fun getRecordById(id: Int): BorrowRecord? = dao.getRecordById(id)
@@ -44,7 +44,7 @@ class BorrowRepository @Inject constructor(
         val record = dao.getRecordById(id)
         if (record?.direction == Direction.BORROWED) {
             val userId = sessionManager.getUserId()
-            if (userId != -1) trustScoreRepository.onItemReturned(userId)
+            if (userId != null) trustScoreRepository.onItemReturned(userId)
         }
     }
 
@@ -52,7 +52,7 @@ class BorrowRepository @Inject constructor(
     suspend fun getOverdueRecords(): List<BorrowRecord> = dao.getOverdueRecords()
     suspend fun canUserBorrow(): Boolean {
         val userId = sessionManager.getUserId()
-        if (userId == -1) return false
+        if (userId == null) return false
         return !trustScoreRepository.isRestricted(userId)
     }
 }
